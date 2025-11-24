@@ -6,41 +6,41 @@ export declare class ServicesService {
     constructor(prisma: PrismaService);
     create(createServiceDto: CreateServiceDto): Promise<{
         price: number;
+        description: string | null;
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        description: string | null;
         durationMin: number;
         isActive: boolean;
     }>;
     findAll(includeInactive?: boolean): Promise<{
         price: number;
+        description: string | null;
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        description: string | null;
         durationMin: number;
         isActive: boolean;
     }[]>;
     findOne(id: string): Promise<{
         price: number;
+        description: string | null;
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        description: string | null;
         durationMin: number;
         isActive: boolean;
     }>;
     update(id: string, updateServiceDto: UpdateServiceDto): Promise<{
         price: number;
+        description: string | null;
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        description: string | null;
         durationMin: number;
         isActive: boolean;
     }>;
@@ -49,11 +49,11 @@ export declare class ServicesService {
     } | {
         price: number;
         message: string;
+        description: string | null;
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        description: string | null;
         durationMin: number;
         isActive: boolean;
     }>;

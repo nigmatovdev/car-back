@@ -135,6 +135,14 @@ The API uses JWT (JSON Web Tokens) for authentication. To access protected endpo
 | GET | `/bookings/:id` | Get booking by ID | Yes | Owner/Washer/Admin |
 | PATCH | `/bookings/:id/status` | Update booking status | Yes | WASHER/ADMIN |
 
+### Payments (`/payments`)
+
+| Method | Endpoint | Description | Auth Required | Role Required |
+|--------|----------|-------------|---------------|---------------|
+| POST | `/payments/intent` | Create Stripe payment intent | Yes | Any |
+| POST | `/payments/webhook` | Stripe webhook handler | No | - |
+| GET | `/payments/:bookingId` | Get payment by booking ID | Yes | Owner/Admin |
+
 ### Application
 
 | Method | Endpoint | Description | Auth Required |
@@ -227,6 +235,8 @@ The application uses PostgreSQL with Prisma ORM. The database schema includes:
 | `JWT_REFRESH_SECRET` | Secret key for refresh tokens | Yes |
 | `JWT_EXPIRES_IN` | Access token expiration time | No (default: 15m) |
 | `JWT_REFRESH_EXPIRES_IN` | Refresh token expiration time | No (default: 7d) |
+| `STRIPE_SECRET_KEY` | Stripe secret API key | Yes (for payments) |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Yes (for payments) |
 | `PORT` | Server port | No (default: 3000) |
 
 ## 👥 User Roles

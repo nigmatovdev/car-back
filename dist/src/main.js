@@ -5,7 +5,9 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const app_module_1 = require("./app.module");
 async function bootstrap() {
-    const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const app = await core_1.NestFactory.create(app_module_1.AppModule, {
+        rawBody: true,
+    });
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
@@ -25,6 +27,9 @@ async function bootstrap() {
     }, 'JWT-auth')
         .addTag('auth', 'Authentication endpoints')
         .addTag('users', 'User management endpoints')
+        .addTag('services', 'Service management endpoints')
+        .addTag('bookings', 'Booking management endpoints')
+        .addTag('payments', 'Payment processing endpoints')
         .addTag('app', 'Application health check')
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, config);

@@ -5,30 +5,30 @@ export declare class UsersService {
     constructor(prisma: PrismaService);
     private sanitizeUser;
     getCurrentUser(userId: string): Promise<{
-        id: string;
         email: string;
         role: import(".prisma/client").$Enums.Role;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
     }>;
     updateCurrentUser(userId: string, updateUserDto: UpdateUserDto): Promise<{
-        id: string;
         email: string;
         role: import(".prisma/client").$Enums.Role;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
     }>;
     findAll(): Promise<{
-        id: string;
         email: string;
         role: import(".prisma/client").$Enums.Role;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
     }[]>;
     findOne(id: string): Promise<{
-        id: string;
         email: string;
         role: import(".prisma/client").$Enums.Role;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
     }>;

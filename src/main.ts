@@ -4,7 +4,9 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true, // Enable raw body for Stripe webhooks
+  });
   
   // Global validation pipe
   app.useGlobalPipes(
@@ -33,6 +35,9 @@ async function bootstrap() {
     )
     .addTag('auth', 'Authentication endpoints')
     .addTag('users', 'User management endpoints')
+    .addTag('services', 'Service management endpoints')
+    .addTag('bookings', 'Booking management endpoints')
+    .addTag('payments', 'Payment processing endpoints')
     .addTag('app', 'Application health check')
     .build();
 

@@ -38,6 +38,15 @@ Booking system with automatic washer assignment and status management.
 - Role-based access control
 - Payment integration
 
+### 5. [Payments API](./API_PAYMENTS.md)
+Stripe payment processing integration.
+
+**Key Features:**
+- Create payment intents
+- Webhook handling
+- Payment status tracking
+- Automatic payment record updates
+
 ## Quick Start
 
 1. **Start the server:**
