@@ -1,19 +1,51 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { WinstonModule } from 'nest-winston';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { winstonConfig } from './common/logger/winston.config';
 
 async function bootstrap() {
+  const logger = new Logger('Bootstrap');
+
   const app = await NestFactory.create(AppModule, {
     rawBody: true, // Enable raw body for Stripe webhooks
+    logger: WinstonModule.createLogger(winstonConfig),
   });
-  
+
+  // Security middleware
+  app.use(helmet());
+
+  // CORS configuration
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
+
+  app.enableCors({
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   );
 
@@ -50,11 +82,22 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3000;
   const demoMode = process.env.DEMO_MODE === 'true';
+  const nodeEnv = process.env.NODE_ENV || 'development';
+
   await app.listen(port);
-  console.log(`🚀 Application is running on: http://localhost:${port}`);
-  console.log(`📚 Swagger documentation: http://localhost:${port}/api`);
+
+  logger.log(`🚀 Application is running on: http://localhost:${port}`);
+  logger.log(`📚 Swagger documentation: http://localhost:${port}/api`);
+  logger.log(`🌍 Environment: ${nodeEnv}`);
   if (demoMode) {
-    console.log(`⚠️  DEMO MODE ENABLED - Payments will be simulated`);
+    logger.warn(`⚠️  DEMO MODE ENABLED - Payments will be simulated`);
   }
+  logger.log(`🔒 Rate limiting: 100 requests per minute`);
+  logger.log(`📝 Logs: Check logs/ directory for application logs`);
 }
-bootstrap();
+
+bootstrap().catch((error) => {
+  const logger = new Logger('Bootstrap');
+  logger.error('Failed to start application', error);
+  process.exit(1);
+});

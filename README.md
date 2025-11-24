@@ -78,6 +78,20 @@ npm run build
 npm run start:prod
 ```
 
+### Testing
+```bash
+# Run all tests
+npm test
+
+# Run e2e tests
+npm run test:e2e
+
+# Run with coverage
+npm run test:cov
+```
+
+See [TESTING.md](./TESTING.md) for detailed testing information.
+
 ## 📚 API Documentation
 
 Once the server is running, access the interactive API documentation at:
@@ -89,6 +103,32 @@ The Swagger documentation provides:
 - Request/response schemas
 - Authentication testing
 - Interactive API testing
+
+## 🧪 Testing
+
+The project includes comprehensive tests:
+- **Unit Tests**: Individual component testing
+- **Integration Tests**: End-to-end flow testing
+- **WebSocket Tests**: Real-time communication testing
+
+Run tests with:
+```bash
+npm test
+```
+
+See [TESTING.md](./TESTING.md) for detailed testing guide.
+
+## 🚀 Deployment
+
+For production deployment on Ubuntu server, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+The deployment guide includes:
+- Server setup and configuration
+- PM2 process management
+- Nginx reverse proxy setup
+- SSL certificate configuration
+- Database backups
+- Monitoring and maintenance
 
 ## 🔐 Authentication
 
