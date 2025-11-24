@@ -47,6 +47,15 @@ Stripe payment processing integration.
 - Payment status tracking
 - Automatic payment record updates
 
+### 6. [Location Tracking API (WebSocket)](./API_LOCATION.md)
+Real-time GPS tracking for washers using WebSockets.
+
+**Key Features:**
+- WebSocket-based real-time location updates
+- JWT authentication for WebSocket connections
+- Automatic location broadcasting to booking users
+- Location persistence in database
+
 ## Quick Start
 
 1. **Start the server:**
@@ -69,6 +78,8 @@ Stripe payment processing integration.
 - **Users**: `http://localhost:3000/users`
 - **Services**: `http://localhost:3000/services`
 - **Bookings**: `http://localhost:3000/bookings`
+- **Payments**: `http://localhost:3000/payments`
+- **Location (WebSocket)**: `ws://localhost:3000/ws/location`
 
 ## Authentication
 

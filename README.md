@@ -151,6 +151,19 @@ The API uses JWT (JSON Web Tokens) for authentication. To access protected endpo
 
 **Demo Mode:** Set `DEMO_MODE=true` in `.env` to enable fake transactions for testing/demo. No Stripe keys required.
 
+### Location Tracking (`/ws/location`) - WebSocket
+
+| Event | Direction | Description | Auth Required | Role Required |
+|-------|-----------|-------------|---------------|---------------|
+| `washer:updateLocation` | Client → Server | Send GPS location update | Yes | WASHER/ADMIN |
+| `user:locationUpdate` | Server → Client | Receive washer location update | Yes | Any |
+| `location:current` | Server → Client | Current location on connect | Yes | WASHER/ADMIN |
+| `washer:locationUpdated` | Server → Client | Location update confirmation | Yes | WASHER/ADMIN |
+
+**WebSocket URL:** `ws://localhost:3000/ws/location`
+
+See [Location API Documentation](./docs/API_LOCATION.md) for detailed WebSocket usage.
+
 ### Application
 
 | Method | Endpoint | Description | Auth Required |
