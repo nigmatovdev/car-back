@@ -49,8 +49,12 @@ async function bootstrap() {
   });
 
   const port = process.env.PORT ?? 3000;
+  const demoMode = process.env.DEMO_MODE === 'true';
   await app.listen(port);
   console.log(`🚀 Application is running on: http://localhost:${port}`);
   console.log(`📚 Swagger documentation: http://localhost:${port}/api`);
+  if (demoMode) {
+    console.log(`⚠️  DEMO MODE ENABLED - Payments will be simulated`);
+  }
 }
 bootstrap();

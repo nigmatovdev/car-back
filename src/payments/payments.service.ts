@@ -6,19 +6,25 @@ import { PaymentStatus } from '@prisma/client';
 
 @Injectable()
 export class PaymentsService {
-  private stripe: Stripe;
+  private stripe?: Stripe;
+
+  private isDemoMode: boolean;
 
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
   ) {
-    const stripeSecretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
-    if (!stripeSecretKey) {
-      throw new Error('STRIPE_SECRET_KEY is not configured');
+    this.isDemoMode = this.configService.get<string>('DEMO_MODE') === 'true';
+    
+    if (!this.isDemoMode) {
+      const stripeSecretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
+      if (!stripeSecretKey) {
+        throw new Error('STRIPE_SECRET_KEY is not configured');
+      }
+      this.stripe = new Stripe(stripeSecretKey, {
+        apiVersion: '2025-11-17.clover',
+      });
     }
-    this.stripe = new Stripe(stripeSecretKey, {
-      apiVersion: '2025-11-17.clover',
-    });
   }
 
   async createPaymentIntent(userId: string, bookingId: string) {
@@ -39,26 +45,63 @@ export class PaymentsService {
       throw new ForbiddenException('You can only create payment for your own bookings');
     }
 
-    // Check if payment already exists
-    if (booking.payment) {
-      // If payment already has an intent, return existing client secret
-      if (booking.payment.stripePaymentIntentId) {
-        try {
-          const existingIntent = await this.stripe.paymentIntents.retrieve(
-            booking.payment.stripePaymentIntentId,
-          );
-          return {
-            clientSecret: existingIntent.client_secret,
-            paymentIntentId: existingIntent.id,
-          };
-        } catch (error) {
-          // If intent doesn't exist, create a new one
-        }
+    // Check if payment already exists and is paid
+    if (booking.payment?.status === PaymentStatus.PAID) {
+      throw new BadRequestException('Payment already completed');
+    }
+
+    // DEMO MODE: Return fake payment intent
+    if (this.isDemoMode) {
+      const fakePaymentIntentId = `pi_demo_${Date.now()}`;
+      const fakeClientSecret = `${fakePaymentIntentId}_secret_demo`;
+
+      // Update or create payment record with fake intent ID
+      if (booking.payment) {
+        await this.prisma.payment.update({
+          where: { bookingId },
+          data: {
+            stripePaymentIntentId: fakePaymentIntentId,
+          },
+        });
+      } else {
+        await this.prisma.payment.upsert({
+          where: { bookingId },
+          update: {
+            stripePaymentIntentId: fakePaymentIntentId,
+          },
+          create: {
+            bookingId,
+            userId,
+            amount: booking.service.price,
+            stripePaymentIntentId: fakePaymentIntentId,
+          },
+        });
       }
 
-      // If payment exists but is already paid, throw error
-      if (booking.payment.status === PaymentStatus.PAID) {
-        throw new BadRequestException('Payment already completed');
+      return {
+        clientSecret: fakeClientSecret,
+        paymentIntentId: fakePaymentIntentId,
+        demoMode: true,
+      };
+    }
+
+    // REAL MODE: Use Stripe
+    if (!this.stripe) {
+      throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY or enable DEMO_MODE.');
+    }
+
+    // Check if payment already has an intent, return existing client secret
+    if (booking.payment?.stripePaymentIntentId) {
+      try {
+        const existingIntent = await this.stripe.paymentIntents.retrieve(
+          booking.payment.stripePaymentIntentId,
+        );
+        return {
+          clientSecret: existingIntent.client_secret,
+          paymentIntentId: existingIntent.id,
+        };
+      } catch (error) {
+        // If intent doesn't exist, create a new one
       }
     }
 
@@ -162,6 +205,52 @@ export class PaymentsService {
     });
 
     console.log(`Payment failed for booking ${bookingId}`);
+  }
+
+  async confirmDemoPayment(userId: string, bookingId: string) {
+    // Verify booking exists and belongs to user
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        payment: true,
+      },
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('You can only confirm payment for your own bookings');
+    }
+
+    if (!booking.payment) {
+      throw new NotFoundException('Payment not found for this booking');
+    }
+
+    if (booking.payment.status === PaymentStatus.PAID) {
+      throw new BadRequestException('Payment already completed');
+    }
+
+    // Simulate payment success
+    const payment = await this.prisma.payment.update({
+      where: { bookingId },
+      data: {
+        status: PaymentStatus.PAID,
+        paymentDate: new Date(),
+      },
+    });
+
+    return {
+      message: 'Payment confirmed successfully (Demo Mode)',
+      payment: {
+        id: payment.id,
+        bookingId: payment.bookingId,
+        amount: payment.amount.toNumber(),
+        status: payment.status,
+        paymentDate: payment.paymentDate,
+      },
+    };
   }
 
   async getPaymentByBookingId(bookingId: string, userId?: string, userRole?: string) {

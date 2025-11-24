@@ -22,6 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
+import { ConfirmDemoPaymentDto } from './dto/confirm-demo-payment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import Stripe from 'stripe';
@@ -134,6 +135,40 @@ export class PaymentsController {
     await this.paymentsService.handleWebhook(event);
 
     return { received: true };
+  }
+
+  @Post('demo/confirm')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Confirm demo payment (for testing/demo only)' })
+  @ApiBody({ type: ConfirmDemoPaymentDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Demo payment confirmed successfully',
+    schema: {
+      example: {
+        message: 'Payment confirmed successfully',
+        payment: {
+          id: 'uuid',
+          status: 'PAID',
+          paymentDate: '2024-01-01T12:00:00.000Z',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Payment already completed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Access denied' })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
+  async confirmDemoPayment(
+    @Request() req: RequestWithUser,
+    @Body() confirmDemoPaymentDto: ConfirmDemoPaymentDto,
+  ) {
+    return this.paymentsService.confirmDemoPayment(
+      req.user.userId,
+      confirmDemoPaymentDto.bookingId,
+    );
   }
 
   @Get(':bookingId')

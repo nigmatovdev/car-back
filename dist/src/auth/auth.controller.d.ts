@@ -15,9 +15,9 @@ export declare class AuthController {
         accessToken: string;
         refreshToken: string;
         user: {
+            id: string;
             email: string;
             role: import(".prisma/client").$Enums.Role;
-            id: string;
             createdAt: Date;
         };
     }>;
@@ -40,9 +40,9 @@ export declare class AuthController {
         };
     }>;
     me(req: RequestWithUser): Promise<{
+        id: string;
         email: string;
         role: import(".prisma/client").$Enums.Role;
-        id: string;
         createdAt: Date;
         updatedAt: Date;
     }>;

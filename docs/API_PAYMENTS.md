@@ -22,9 +22,20 @@ http://localhost:3000/payments
 Add these to your `.env` file:
 
 ```env
+# For production/real payments
 STRIPE_SECRET_KEY=sk_test_...  # Your Stripe secret key
 STRIPE_WEBHOOK_SECRET=whsec_... # Your Stripe webhook signing secret
+
+# For demo/testing (optional)
+DEMO_MODE=true  # Set to 'true' to enable demo mode (no real Stripe calls)
 ```
+
+**Demo Mode:**
+- Set `DEMO_MODE=true` in your `.env` file
+- No Stripe API keys required
+- Payment intents return fake client secrets
+- Use `POST /payments/demo/confirm` to simulate successful payments
+- Perfect for demos, testing, and development without Stripe setup
 
 ### Stripe Setup
 
@@ -63,7 +74,18 @@ Create a Stripe payment intent for a booking. Returns a client secret for client
 ```json
 {
   "clientSecret": "pi_xxx_secret_xxx",
-  "paymentIntentId": "pi_xxx"
+  "paymentIntentId": "pi_xxx",
+  "demoMode": false  // Only present in demo mode
+}
+```
+
+**Demo Mode Response:**
+When `DEMO_MODE=true`, the response includes a `demoMode: true` flag:
+```json
+{
+  "clientSecret": "pi_demo_1234567890_secret_demo",
+  "paymentIntentId": "pi_demo_1234567890",
+  "demoMode": true
 }
 ```
 
@@ -178,7 +200,70 @@ stripe trigger payment_intent.succeeded
 
 ---
 
-### 3. Get Payment by Booking ID
+### 3. Confirm Demo Payment (Demo Mode Only)
+
+Simulate a successful payment for testing/demo purposes. Only works when `DEMO_MODE=true`.
+
+**Endpoint:** `POST /payments/demo/confirm`
+
+**Authentication:** Required
+
+**Request Body:**
+```json
+{
+  "bookingId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Validation Rules:**
+- `bookingId` (UUID, required): Valid booking ID that belongs to the user
+
+**Response (200 OK):**
+```json
+{
+  "message": "Payment confirmed successfully (Demo Mode)",
+  "payment": {
+    "id": "990e8400-e29b-41d4-a716-446655440004",
+    "bookingId": "770e8400-e29b-41d4-a716-446655440002",
+    "amount": 25.99,
+    "status": "PAID",
+    "paymentDate": "2024-01-01T12:00:00.000Z"
+  }
+}
+```
+
+**How It Works:**
+1. Verifies booking exists and belongs to user
+2. Checks payment exists and is not already paid
+3. Updates payment status to `PAID`
+4. Sets `paymentDate` to current timestamp
+5. Returns confirmation message
+
+**Error Responses:**
+- `400 Bad Request`: Payment already completed
+- `401 Unauthorized`: Invalid or expired token
+- `403 Forbidden`: Booking doesn't belong to user
+- `404 Not Found`: Booking or payment not found
+
+**Example (cURL):**
+```bash
+curl -X POST http://localhost:3000/payments/demo/confirm \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <user-token>" \
+  -d '{
+    "bookingId": "550e8400-e29b-41d4-a716-446655440000"
+  }'
+```
+
+**Demo Mode Workflow:**
+1. Create booking (payment record created with `UNPAID` status)
+2. Create payment intent → Returns fake client secret with `demoMode: true`
+3. Confirm demo payment → `POST /payments/demo/confirm`
+4. Payment status updated to `PAID`
+
+---
+
+### 4. Get Payment by Booking ID
 
 Get payment information for a specific booking.
 

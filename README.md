@@ -47,6 +47,11 @@ A comprehensive RESTful API for managing a car wash service platform built with 
    JWT_EXPIRES_IN="15m"
    JWT_REFRESH_EXPIRES_IN="7d"
    PORT=3000
+   
+   # Payments (Stripe) - Optional for demo mode
+   DEMO_MODE=true  # Set to 'true' for demo/testing (no Stripe keys needed)
+   # STRIPE_SECRET_KEY=sk_test_...  # Only needed if DEMO_MODE=false
+   # STRIPE_WEBHOOK_SECRET=whsec_...  # Only needed if DEMO_MODE=false
    ```
 
 4. **Set up the database**
@@ -140,8 +145,11 @@ The API uses JWT (JSON Web Tokens) for authentication. To access protected endpo
 | Method | Endpoint | Description | Auth Required | Role Required |
 |--------|----------|-------------|---------------|---------------|
 | POST | `/payments/intent` | Create Stripe payment intent | Yes | Any |
+| POST | `/payments/demo/confirm` | Confirm demo payment (demo mode only) | Yes | Any |
 | POST | `/payments/webhook` | Stripe webhook handler | No | - |
 | GET | `/payments/:bookingId` | Get payment by booking ID | Yes | Owner/Admin |
+
+**Demo Mode:** Set `DEMO_MODE=true` in `.env` to enable fake transactions for testing/demo. No Stripe keys required.
 
 ### Application
 
@@ -235,8 +243,9 @@ The application uses PostgreSQL with Prisma ORM. The database schema includes:
 | `JWT_REFRESH_SECRET` | Secret key for refresh tokens | Yes |
 | `JWT_EXPIRES_IN` | Access token expiration time | No (default: 15m) |
 | `JWT_REFRESH_EXPIRES_IN` | Refresh token expiration time | No (default: 7d) |
-| `STRIPE_SECRET_KEY` | Stripe secret API key | Yes (for payments) |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Yes (for payments) |
+| `DEMO_MODE` | Enable demo mode for fake transactions | No (default: false) |
+| `STRIPE_SECRET_KEY` | Stripe secret API key | Yes (if DEMO_MODE=false) |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Yes (if DEMO_MODE=false) |
 | `PORT` | Server port | No (default: 3000) |
 
 ## 👥 User Roles
