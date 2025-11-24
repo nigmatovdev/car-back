@@ -5,11 +5,119 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum Role {
+  CUSTOMER
+  WASHER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  ASSIGNED
+  EN_ROUTE
+  ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING
+  PAID
+  FAILED
+}
+
+// Models
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  password     String
+  role         Role     @default(CUSTOMER)
+  refreshToken String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  bookings        Booking[]
+  payments        Payment[]
+  washerBookings  Booking[] @relation("WasherBookings")
+  washerLocation  WasherLocation?
+
+  @@map("users")
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  bookings Booking[]
+
+  @@map("services")
+}
+
+model Booking {
+  id         String        @id @default(uuid())
+  userId     String
+  serviceId  String
+  washerId   String?
+  latitude   Decimal       @db.Decimal(10, 8)
+  longitude  Decimal       @db.Decimal(11, 8)
+  date       DateTime
+  time       String
+  status     BookingStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  washer  User?    @relation("WasherBookings", fields: [washerId], references: [id], onDelete: SetNull)
+  payment Payment?
+
+  @@map("bookings")
+}
+
+model Payment {
+  id          String        @id @default(uuid())
+  bookingId   String        @unique
+  userId      String
+  amount      Decimal       @db.Decimal(10, 2)
+  status      PaymentStatus @default(UNPAID)
+  paymentDate DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model WasherLocation {
+  id        String   @id @default(uuid())
+  washerId  String   @unique
+  latitude  Decimal  @db.Decimal(10, 8)
+  longitude Decimal  @db.Decimal(11, 8)
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  washer User @relation(fields: [washerId], references: [id], onDelete: Cascade)
+
+  @@map("washer_locations")
 }
