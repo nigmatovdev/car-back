@@ -129,6 +129,81 @@ http://localhost:3000
   }
   ```
 
+## User Management Endpoints
+
+### 6. Get Current User Profile
+**GET** `/users/me`
+- Requires: Bearer token (access token) in Authorization header
+- Response:
+  ```json
+  {
+    "id": "uuid",
+    "email": "user@example.com",
+    "role": "CUSTOMER",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+  ```
+
+### 7. Update Current User Profile
+**PATCH** `/users/me`
+- Requires: Bearer token (access token) in Authorization header
+- Request Body (all fields optional):
+  ```json
+  {
+    "email": "newemail@example.com",
+    "password": "newpassword123"
+  }
+  ```
+- Note: Regular users cannot change their role. Only admins can change roles.
+- Response:
+  ```json
+  {
+    "id": "uuid",
+    "email": "newemail@example.com",
+    "role": "CUSTOMER",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+  ```
+
+### 8. Get All Users (Admin Only)
+**GET** `/users`
+- Requires: Bearer token with ADMIN role
+- Response:
+  ```json
+  [
+    {
+      "id": "uuid",
+      "email": "user1@example.com",
+      "role": "CUSTOMER",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "uuid",
+      "email": "user2@example.com",
+      "role": "WASHER",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+  ```
+
+### 9. Get User by ID (Admin Only)
+**GET** `/users/:id`
+- Requires: Bearer token with ADMIN role
+- Response:
+  ```json
+  {
+    "id": "uuid",
+    "email": "user@example.com",
+    "role": "CUSTOMER",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+  ```
+
 ## Testing with cURL
 
 ### 1. Health Check
@@ -175,6 +250,38 @@ curl -X POST http://localhost:3000/auth/refresh \
   -d '{
     "refreshToken": "YOUR_REFRESH_TOKEN"
   }'
+```
+
+### 6. Get Current User Profile
+```bash
+# Replace YOUR_ACCESS_TOKEN with the token from login/register
+curl http://localhost:3000/users/me \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### 7. Update Current User Profile
+```bash
+# Replace YOUR_ACCESS_TOKEN with the token from login/register
+curl -X PATCH http://localhost:3000/users/me \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "email": "newemail@example.com"
+  }'
+```
+
+### 8. Get All Users (Admin Only)
+```bash
+# Replace ADMIN_TOKEN with an admin user's access token
+curl http://localhost:3000/users \
+  -H "Authorization: Bearer ADMIN_TOKEN"
+```
+
+### 9. Get User by ID (Admin Only)
+```bash
+# Replace ADMIN_TOKEN and USER_ID
+curl http://localhost:3000/users/USER_ID \
+  -H "Authorization: Bearer ADMIN_TOKEN"
 ```
 
 ## Testing with PowerShell (Windows)
