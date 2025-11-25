@@ -14,12 +14,18 @@ async function bootstrap() {
     logger: WinstonModule.createLogger(winstonConfig),
   });
 
-  // Security middleware
-  app.use(helmet());
+  // Security middleware - configured for HTTP support
+  app.use(
+    helmet({
+      contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+      crossOriginOpenerPolicy: false, // Disable for HTTP (requires HTTPS)
+      crossOriginEmbedderPolicy: false, // Disable for HTTP (requires HTTPS)
+    }),
+  );
 
   // CORS configuration
   const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
+    ? process.env.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim())
     : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
 
   app.enableCors({
