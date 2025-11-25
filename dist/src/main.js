@@ -17,15 +17,7 @@ async function bootstrap() {
         logger: nest_winston_1.WinstonModule.createLogger(winston_config_1.winstonConfig),
     });
     app.use((0, helmet_1.default)({
-        contentSecurityPolicy: {
-            directives: {
-                defaultSrc: ["'self'"],
-                styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-                scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-                fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-                imgSrc: ["'self'", 'data:', 'https:'],
-            },
-        },
+        contentSecurityPolicy: false,
         crossOriginOpenerPolicy: false,
         crossOriginEmbedderPolicy: false,
     }));
@@ -78,12 +70,7 @@ async function bootstrap() {
     swagger_1.SwaggerModule.setup('api', app, document, {
         swaggerOptions: {
             persistAuthorization: true,
-            customCss: '.swagger-ui .topbar { display: none }',
-            customSiteTitle: 'Car Wash API Documentation',
         },
-        customCssUrl: undefined,
-        customJs: undefined,
-        customfavIcon: undefined,
     });
     const port = process.env.PORT ?? 3000;
     const demoMode = process.env.DEMO_MODE === 'true';
