@@ -14,10 +14,18 @@ async function bootstrap() {
     logger: WinstonModule.createLogger(winstonConfig),
   });
 
-  // Security middleware - configured for HTTP support
+  // Security middleware - configured for HTTP support and Swagger UI
   app.use(
     helmet({
-      contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Required for Swagger UI
+          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+          imgSrc: ["'self'", 'data:', 'https:'],
+        },
+      },
       crossOriginOpenerPolicy: false, // Disable for HTTP (requires HTTPS)
       crossOriginEmbedderPolicy: false, // Disable for HTTP (requires HTTPS)
     }),
@@ -83,7 +91,12 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'Car Wash API Documentation',
     },
+    customCssUrl: undefined, // Use inline CSS
+    customJs: undefined, // Use inline JS
+    customfavIcon: undefined, // Use default favicon
   });
 
   const port = process.env.PORT ?? 3000;

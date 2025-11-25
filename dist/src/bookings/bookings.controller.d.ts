@@ -16,20 +16,20 @@ export declare class BookingsController {
         longitude: number;
         service: {
             price: number;
-            id: string;
-            title: string;
             description: string | null;
+            title: string;
+            id: string;
             durationMin: number;
         };
         user: {
-            id: string;
             email: string;
+            id: string;
         };
         washer: {
-            id: string;
             email: string;
             password: string;
             role: import(".prisma/client").$Enums.Role;
+            id: string;
             refreshToken: string | null;
             createdAt: Date;
             updatedAt: Date;
@@ -37,21 +37,21 @@ export declare class BookingsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        serviceId: string;
-        washerId: string | null;
         date: Date;
         time: string;
         status: import(".prisma/client").$Enums.BookingStatus;
+        userId: string;
+        washerId: string | null;
+        serviceId: string;
     }>;
     findMyBookings(req: RequestWithUser): Promise<{
         latitude: number;
         longitude: number;
         service: {
             price: number;
-            id: string;
-            title: string;
             description: string | null;
+            title: string;
+            id: string;
             durationMin: number;
         };
         payment: {
@@ -60,27 +60,27 @@ export declare class BookingsController {
             status: import(".prisma/client").$Enums.PaymentStatus;
         } | null;
         washer: {
-            id: string;
             email: string;
+            id: string;
         } | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        serviceId: string;
-        washerId: string | null;
         date: Date;
         time: string;
         status: import(".prisma/client").$Enums.BookingStatus;
+        userId: string;
+        washerId: string | null;
+        serviceId: string;
     }[]>;
     findAll(req: RequestWithUser): Promise<{
         latitude: number;
         longitude: number;
         service: {
             price: number;
-            id: string;
-            title: string;
             description: string | null;
+            title: string;
+            id: string;
             durationMin: number;
         };
         payment: {
@@ -89,31 +89,31 @@ export declare class BookingsController {
             status: import(".prisma/client").$Enums.PaymentStatus;
         } | null;
         user: {
-            id: string;
             email: string;
+            id: string;
         };
         washer: {
-            id: string;
             email: string;
+            id: string;
         } | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        serviceId: string;
-        washerId: string | null;
         date: Date;
         time: string;
         status: import(".prisma/client").$Enums.BookingStatus;
+        userId: string;
+        washerId: string | null;
+        serviceId: string;
     }[]>;
     findOne(req: RequestWithUser, id: string): Promise<{
         latitude: number;
         longitude: number;
         service: {
             price: number;
-            id: string;
-            title: string;
             description: string | null;
+            title: string;
+            id: string;
             durationMin: number;
         };
         payment: {
@@ -122,31 +122,31 @@ export declare class BookingsController {
             status: import(".prisma/client").$Enums.PaymentStatus;
         } | null;
         user: {
-            id: string;
             email: string;
+            id: string;
         };
         washer: {
-            id: string;
             email: string;
+            id: string;
         } | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        serviceId: string;
-        washerId: string | null;
         date: Date;
         time: string;
         status: import(".prisma/client").$Enums.BookingStatus;
+        userId: string;
+        washerId: string | null;
+        serviceId: string;
     }>;
     updateStatus(req: RequestWithUser, id: string, updateStatusDto: UpdateBookingStatusDto): Promise<{
         latitude: number;
         longitude: number;
         service: {
             price: number;
-            id: string;
-            title: string;
             description: string | null;
+            title: string;
+            id: string;
             durationMin: number;
         };
         payment: {
@@ -155,22 +155,22 @@ export declare class BookingsController {
             status: import(".prisma/client").$Enums.PaymentStatus;
         } | null;
         user: {
-            id: string;
             email: string;
+            id: string;
         };
         washer: {
-            id: string;
             email: string;
+            id: string;
         } | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
-        serviceId: string;
-        washerId: string | null;
         date: Date;
         time: string;
         status: import(".prisma/client").$Enums.BookingStatus;
+        userId: string;
+        washerId: string | null;
+        serviceId: string;
     }>;
 }
 export {};

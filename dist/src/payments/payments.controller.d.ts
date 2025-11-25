@@ -46,37 +46,37 @@ export declare class PaymentsController {
         booking: {
             service: {
                 price: number;
-                id: string;
                 title: string;
+                id: string;
             };
             user: {
-                id: string;
                 email: string;
+                id: string;
             };
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
-            serviceId: string;
-            washerId: string | null;
             latitude: import("@prisma/client-runtime-utils").Decimal;
             longitude: import("@prisma/client-runtime-utils").Decimal;
             date: Date;
             time: string;
             status: import(".prisma/client").$Enums.BookingStatus;
+            userId: string;
+            washerId: string | null;
+            serviceId: string;
         };
         user: {
-            id: string;
             email: string;
+            id: string;
         };
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         status: import(".prisma/client").$Enums.PaymentStatus;
-        bookingId: string;
-        paymentDate: Date | null;
+        userId: string;
         stripePaymentIntentId: string | null;
+        paymentDate: Date | null;
+        bookingId: string;
     }>;
 }
 export {};

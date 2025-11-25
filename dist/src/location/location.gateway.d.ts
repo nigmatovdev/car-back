@@ -35,8 +35,8 @@ export declare class LocationGateway implements OnGatewayConnection, OnGatewayDi
             lng: number;
             updatedAt: Date;
             washer: {
-                id: string;
                 email: string;
+                id: string;
             };
         };
         error?: undefined;

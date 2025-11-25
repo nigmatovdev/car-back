@@ -10,8 +10,8 @@ export declare class LocationService {
         lng: number;
         updatedAt: Date;
         washer: {
-            id: string;
             email: string;
+            id: string;
         };
     }>;
     getWasherLocation(washerId: string): Promise<{
@@ -21,13 +21,13 @@ export declare class LocationService {
         lng: number;
         updatedAt: Date;
         washer: {
-            id: string;
             email: string;
+            id: string;
         };
     } | null>;
     getBookingsForWasher(washerId: string): Promise<{
         id: string;
-        userId: string;
         status: import(".prisma/client").$Enums.BookingStatus;
+        userId: string;
     }[]>;
 }
