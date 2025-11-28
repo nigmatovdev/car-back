@@ -16,6 +16,11 @@ const client_1 = require("@prisma/client");
 class RegisterDto {
     email;
     password;
+    firstName;
+    lastName;
+    phone;
+    avatar;
+    address;
     role;
 }
 exports.RegisterDto = RegisterDto;
@@ -37,6 +42,54 @@ __decorate([
     (0, class_validator_1.MinLength)(6),
     __metadata("design:type", String)
 ], RegisterDto.prototype, "password", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'User first name',
+        example: 'John',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "firstName", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'User last name',
+        example: 'Doe',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "lastName", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'User phone number',
+        example: '+1234567890',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Matches)(/^\+?[1-9]\d{1,14}$/, {
+        message: 'Phone number must be in international format (e.g., +1234567890)',
+    }),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "phone", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'User avatar URL',
+        example: 'https://example.com/avatar.jpg',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "avatar", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'User address',
+        example: '123 Main St, City, State 12345',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "address", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'User role',

@@ -21,7 +21,13 @@ export class UsersService {
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        avatar: true,
+        address: true,
         role: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -68,10 +74,34 @@ export class UsersService {
       updateData.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
-    // Regular users cannot change their role
+    if (updateUserDto.firstName !== undefined) {
+      updateData.firstName = updateUserDto.firstName;
+    }
+
+    if (updateUserDto.lastName !== undefined) {
+      updateData.lastName = updateUserDto.lastName;
+    }
+
+    if (updateUserDto.phone !== undefined) {
+      updateData.phone = updateUserDto.phone;
+    }
+
+    if (updateUserDto.avatar !== undefined) {
+      updateData.avatar = updateUserDto.avatar;
+    }
+
+    if (updateUserDto.address !== undefined) {
+      updateData.address = updateUserDto.address;
+    }
+
+    // Regular users cannot change their role or isActive
     // Only admins can change roles (handled in controller)
     if (updateUserDto.role) {
       updateData.role = updateUserDto.role;
+    }
+
+    if (updateUserDto.isActive !== undefined) {
+      updateData.isActive = updateUserDto.isActive;
     }
 
     // Update user
@@ -81,7 +111,13 @@ export class UsersService {
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        avatar: true,
+        address: true,
         role: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -96,7 +132,13 @@ export class UsersService {
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        avatar: true,
+        address: true,
         role: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -115,7 +157,13 @@ export class UsersService {
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        avatar: true,
+        address: true,
         role: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
       },

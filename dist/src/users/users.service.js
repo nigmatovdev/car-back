@@ -63,7 +63,13 @@ let UsersService = class UsersService {
             select: {
                 id: true,
                 email: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+                avatar: true,
+                address: true,
                 role: true,
+                isActive: true,
                 createdAt: true,
                 updatedAt: true,
             },
@@ -95,8 +101,26 @@ let UsersService = class UsersService {
         if (updateUserDto.password) {
             updateData.password = await bcrypt.hash(updateUserDto.password, 10);
         }
+        if (updateUserDto.firstName !== undefined) {
+            updateData.firstName = updateUserDto.firstName;
+        }
+        if (updateUserDto.lastName !== undefined) {
+            updateData.lastName = updateUserDto.lastName;
+        }
+        if (updateUserDto.phone !== undefined) {
+            updateData.phone = updateUserDto.phone;
+        }
+        if (updateUserDto.avatar !== undefined) {
+            updateData.avatar = updateUserDto.avatar;
+        }
+        if (updateUserDto.address !== undefined) {
+            updateData.address = updateUserDto.address;
+        }
         if (updateUserDto.role) {
             updateData.role = updateUserDto.role;
+        }
+        if (updateUserDto.isActive !== undefined) {
+            updateData.isActive = updateUserDto.isActive;
         }
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },
@@ -104,7 +128,13 @@ let UsersService = class UsersService {
             select: {
                 id: true,
                 email: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+                avatar: true,
+                address: true,
                 role: true,
+                isActive: true,
                 createdAt: true,
                 updatedAt: true,
             },
@@ -116,7 +146,13 @@ let UsersService = class UsersService {
             select: {
                 id: true,
                 email: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+                avatar: true,
+                address: true,
                 role: true,
+                isActive: true,
                 createdAt: true,
                 updatedAt: true,
             },
@@ -132,7 +168,13 @@ let UsersService = class UsersService {
             select: {
                 id: true,
                 email: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+                avatar: true,
+                address: true,
                 role: true,
+                isActive: true,
                 createdAt: true,
                 updatedAt: true,
             },

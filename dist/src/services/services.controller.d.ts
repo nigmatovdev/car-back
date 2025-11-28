@@ -9,40 +9,40 @@ export declare class ServicesController {
         description: string | null;
         title: string;
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         durationMin: number;
-        isActive: boolean;
     }>;
     findAll(includeInactive?: string): Promise<{
         price: number;
         description: string | null;
         title: string;
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         durationMin: number;
-        isActive: boolean;
     }[]>;
     findOne(id: string): Promise<{
         price: number;
         description: string | null;
         title: string;
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         durationMin: number;
-        isActive: boolean;
     }>;
     update(id: string, updateServiceDto: UpdateServiceDto): Promise<{
         price: number;
         description: string | null;
         title: string;
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         durationMin: number;
-        isActive: boolean;
     }>;
     remove(id: string, hardDelete?: string): Promise<{
         message: string;
@@ -52,9 +52,9 @@ export declare class ServicesController {
         description: string | null;
         title: string;
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         durationMin: number;
-        isActive: boolean;
     }>;
 }

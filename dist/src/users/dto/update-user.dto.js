@@ -16,7 +16,13 @@ const client_1 = require("@prisma/client");
 class UpdateUserDto {
     email;
     password;
+    firstName;
+    lastName;
+    phone;
+    avatar;
+    address;
     role;
+    isActive;
 }
 exports.UpdateUserDto = UpdateUserDto;
 __decorate([
@@ -41,6 +47,54 @@ __decorate([
 ], UpdateUserDto.prototype, "password", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
+        description: 'User first name',
+        example: 'John',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateUserDto.prototype, "firstName", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'User last name',
+        example: 'Doe',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateUserDto.prototype, "lastName", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'User phone number',
+        example: '+1234567890',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Matches)(/^\+?[1-9]\d{1,14}$/, {
+        message: 'Phone number must be in international format (e.g., +1234567890)',
+    }),
+    __metadata("design:type", String)
+], UpdateUserDto.prototype, "phone", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'User avatar URL',
+        example: 'https://example.com/avatar.jpg',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateUserDto.prototype, "avatar", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'User address',
+        example: '123 Main St, City, State 12345',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateUserDto.prototype, "address", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
         description: 'User role (Admin only)',
         enum: client_1.Role,
         example: 'CUSTOMER',
@@ -49,4 +103,13 @@ __decorate([
     (0, class_validator_1.IsEnum)(client_1.Role),
     __metadata("design:type", String)
 ], UpdateUserDto.prototype, "role", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'User active status (Admin only)',
+        example: true,
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpdateUserDto.prototype, "isActive", void 0);
 //# sourceMappingURL=update-user.dto.js.map

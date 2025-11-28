@@ -28,8 +28,14 @@ export declare class BookingsController {
         washer: {
             email: string;
             password: string;
+            firstName: string | null;
+            lastName: string | null;
+            phone: string | null;
+            avatar: string | null;
+            address: string | null;
             role: import(".prisma/client").$Enums.Role;
             id: string;
+            isActive: boolean;
             refreshToken: string | null;
             createdAt: Date;
             updatedAt: Date;

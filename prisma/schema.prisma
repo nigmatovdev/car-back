@@ -42,7 +42,13 @@ model User {
   id           String   @id @default(uuid())
   email        String   @unique
   password     String
+  firstName    String?
+  lastName     String?
+  phone        String?
+  avatar       String?  // URL to profile picture
+  address      String?  // User's address for service location
   role         Role     @default(CUSTOMER)
+  isActive     Boolean  @default(true)
   refreshToken String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

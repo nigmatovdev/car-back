@@ -16,8 +16,14 @@ export declare class AuthController {
         refreshToken: string;
         user: {
             email: string;
+            firstName: string | null;
+            lastName: string | null;
+            phone: string | null;
+            avatar: string | null;
+            address: string | null;
             role: import(".prisma/client").$Enums.Role;
             id: string;
+            isActive: boolean;
             createdAt: Date;
         };
     }>;
@@ -27,7 +33,13 @@ export declare class AuthController {
         user: {
             id: any;
             email: any;
+            firstName: any;
+            lastName: any;
+            phone: any;
+            avatar: any;
+            address: any;
             role: any;
+            isActive: any;
         };
     }>;
     refresh(req: RequestWithUser, refreshDto: RefreshDto): Promise<{
@@ -36,13 +48,25 @@ export declare class AuthController {
         user: {
             id: string;
             email: string;
+            firstName: string | null;
+            lastName: string | null;
+            phone: string | null;
+            avatar: string | null;
+            address: string | null;
             role: import(".prisma/client").$Enums.Role;
+            isActive: boolean;
         };
     }>;
     me(req: RequestWithUser): Promise<{
         email: string;
+        firstName: string | null;
+        lastName: string | null;
+        phone: string | null;
+        avatar: string | null;
+        address: string | null;
         role: import(".prisma/client").$Enums.Role;
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
     }>;
