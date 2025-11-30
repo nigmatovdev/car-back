@@ -44,11 +44,11 @@ export declare class PaymentsService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            status: import(".prisma/client").$Enums.BookingStatus;
             latitude: import("@prisma/client-runtime-utils").Decimal;
             longitude: import("@prisma/client-runtime-utils").Decimal;
             date: Date;
             time: string;
-            status: import(".prisma/client").$Enums.BookingStatus;
             userId: string;
             washerId: string | null;
             serviceId: string;

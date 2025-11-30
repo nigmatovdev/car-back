@@ -106,23 +106,17 @@ export class BookingsService {
       throw new BadRequestException('Service is not active');
     }
 
-    // Find closest washer
-    const closestWasherId = await this.findClosestWasher(
-      createBookingDto.latitude,
-      createBookingDto.longitude,
-    );
-
-    // Create booking
+    // Create booking with PENDING status (no auto-assignment)
     const booking = await this.prisma.booking.create({
       data: {
         userId,
         serviceId: createBookingDto.serviceId,
-        washerId: closestWasherId, // Auto-assign if available
+        washerId: null, // No auto-assignment - washer will accept manually
         latitude: new Prisma.Decimal(createBookingDto.latitude),
         longitude: new Prisma.Decimal(createBookingDto.longitude),
         date: new Date(createBookingDto.date),
         time: createBookingDto.time,
-        status: closestWasherId ? BookingStatus.ASSIGNED : BookingStatus.PENDING,
+        status: BookingStatus.PENDING, // Always PENDING - washer must accept
       },
       include: {
         service: {
@@ -138,16 +132,11 @@ export class BookingsService {
           select: {
             id: true,
             email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
           },
         },
-        washer: closestWasherId
-          ? {
-              select: {
-                id: true,
-                email: true,
-              },
-            }
-          : false,
       },
     });
 
@@ -513,6 +502,143 @@ export class BookingsService {
     };
   }
 
+  async findAvailableBookings(userRole: string) {
+    // Only washers and admins can view available bookings
+    if (userRole !== 'WASHER' && userRole !== 'ADMIN') {
+      throw new ForbiddenException('Only washers can view available bookings');
+    }
+
+    // Get all PENDING bookings (not yet assigned)
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        status: BookingStatus.PENDING,
+      },
+      include: {
+        service: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            price: true,
+            durationMin: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            address: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return bookings.map((booking) => ({
+      ...booking,
+      latitude: booking.latitude.toNumber(),
+      longitude: booking.longitude.toNumber(),
+      service: {
+        ...booking.service,
+        price: booking.service.price.toNumber(),
+      },
+    }));
+  }
+
+  async acceptBooking(bookingId: string, washerId: string, userRole: string) {
+    // Only washers and admins can accept bookings
+    if (userRole !== 'WASHER' && userRole !== 'ADMIN') {
+      throw new ForbiddenException('Only washers can accept bookings');
+    }
+
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    // Check if booking is available (PENDING status)
+    if (booking.status !== BookingStatus.PENDING) {
+      throw new BadRequestException(
+        `Booking is not available. Current status: ${booking.status}`,
+      );
+    }
+
+    // Check if booking is already assigned
+    if (booking.washerId) {
+      throw new BadRequestException('Booking is already assigned to another washer');
+    }
+
+    // Assign booking to washer and update status
+    const updatedBooking = await this.prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        washerId,
+        status: BookingStatus.ASSIGNED,
+      },
+      include: {
+        service: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            price: true,
+            durationMin: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            address: true,
+          },
+        },
+        washer: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+          },
+        },
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    return {
+      ...updatedBooking,
+      latitude: updatedBooking.latitude.toNumber(),
+      longitude: updatedBooking.longitude.toNumber(),
+      service: {
+        ...updatedBooking.service,
+        price: updatedBooking.service.price.toNumber(),
+      },
+      payment: updatedBooking.payment
+        ? {
+            ...updatedBooking.payment,
+            amount: updatedBooking.payment.amount.toNumber(),
+          }
+        : null,
+    };
+  }
+
   async remove(id: string, userId: string, userRole: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id },
@@ -552,4 +678,5 @@ export class BookingsService {
     };
   }
 }
+
 

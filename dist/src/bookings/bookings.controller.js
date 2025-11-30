@@ -41,6 +41,18 @@ let BookingsController = class BookingsController {
     updateStatus(req, id, updateStatusDto) {
         return this.bookingsService.updateStatus(id, req.user.userId, req.user.role, updateStatusDto);
     }
+    cancel(req, id) {
+        return this.bookingsService.cancel(id, req.user.userId, req.user.role);
+    }
+    findAvailableBookings(req) {
+        return this.bookingsService.findAvailableBookings(req.user.role);
+    }
+    acceptBooking(req, id) {
+        return this.bookingsService.acceptBooking(id, req.user.userId, req.user.role);
+    }
+    remove(req, id) {
+        return this.bookingsService.remove(id, req.user.userId, req.user.role);
+    }
 };
 exports.BookingsController = BookingsController;
 __decorate([
@@ -195,6 +207,195 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, update_booking_status_dto_1.UpdateBookingStatusDto]),
     __metadata("design:returntype", void 0)
 ], BookingsController.prototype, "updateStatus", null);
+__decorate([
+    (0, common_1.Patch)(':id/cancel'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Cancel a booking (Owner only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Booking ID', type: 'string' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Booking cancelled successfully',
+        schema: {
+            example: {
+                id: 'uuid',
+                userId: 'uuid',
+                serviceId: 'uuid',
+                washerId: 'uuid',
+                latitude: 40.7128,
+                longitude: -74.0060,
+                date: '2024-12-25T00:00:00.000Z',
+                time: '14:30',
+                status: 'CANCELLED',
+                createdAt: '2024-01-01T00:00:00.000Z',
+                updatedAt: '2024-01-01T00:00:00.000Z',
+                service: {
+                    id: 'uuid',
+                    title: 'Basic Car Wash',
+                    description: 'Exterior wash and dry',
+                    price: 25.99,
+                    durationMin: 30,
+                },
+                user: {
+                    id: 'uuid',
+                    email: 'user@example.com',
+                },
+                washer: {
+                    id: 'uuid',
+                    email: 'washer@example.com',
+                },
+                payment: {
+                    id: 'uuid',
+                    amount: 25.99,
+                    status: 'FAILED',
+                },
+            },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Booking cannot be cancelled (already cancelled or completed)' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Only the booking owner can cancel this booking' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Booking not found' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], BookingsController.prototype, "cancel", null);
+__decorate([
+    (0, common_1.Get)('available'),
+    (0, common_1.UseGuards)(washer_guard_1.WasherGuard),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Get available bookings (Washer only)' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Available bookings retrieved successfully',
+        schema: {
+            example: [
+                {
+                    id: 'uuid',
+                    userId: 'uuid',
+                    serviceId: 'uuid',
+                    washerId: null,
+                    latitude: 40.7128,
+                    longitude: -74.0060,
+                    date: '2024-12-25T00:00:00.000Z',
+                    time: '14:30',
+                    status: 'PENDING',
+                    createdAt: '2024-01-01T00:00:00.000Z',
+                    updatedAt: '2024-01-01T00:00:00.000Z',
+                    service: {
+                        id: 'uuid',
+                        title: 'Basic Car Wash',
+                        description: 'Exterior wash and dry',
+                        price: 25.99,
+                        durationMin: 30,
+                    },
+                    user: {
+                        id: 'uuid',
+                        email: 'user@example.com',
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        phone: '+1234567890',
+                        address: '123 Main St',
+                    },
+                },
+            ],
+        },
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Only washers can view available bookings' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], BookingsController.prototype, "findAvailableBookings", null);
+__decorate([
+    (0, common_1.Patch)(':id/accept'),
+    (0, common_1.UseGuards)(washer_guard_1.WasherGuard),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Accept a booking (Washer only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Booking ID', type: 'string' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Booking accepted successfully',
+        schema: {
+            example: {
+                id: 'uuid',
+                userId: 'uuid',
+                serviceId: 'uuid',
+                washerId: 'uuid',
+                latitude: 40.7128,
+                longitude: -74.0060,
+                date: '2024-12-25T00:00:00.000Z',
+                time: '14:30',
+                status: 'ASSIGNED',
+                createdAt: '2024-01-01T00:00:00.000Z',
+                updatedAt: '2024-01-01T12:00:00.000Z',
+                service: {
+                    id: 'uuid',
+                    title: 'Basic Car Wash',
+                    description: 'Exterior wash and dry',
+                    price: 25.99,
+                    durationMin: 30,
+                },
+                user: {
+                    id: 'uuid',
+                    email: 'user@example.com',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    phone: '+1234567890',
+                    address: '123 Main St',
+                },
+                washer: {
+                    id: 'uuid',
+                    email: 'washer@example.com',
+                    firstName: 'Jane',
+                    lastName: 'Smith',
+                    phone: '+0987654321',
+                },
+                payment: {
+                    id: 'uuid',
+                    amount: 25.99,
+                    status: 'UNPAID',
+                },
+            },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Booking is not available or already assigned' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Only washers can accept bookings' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Booking not found' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], BookingsController.prototype, "acceptBooking", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete a booking (Owner only)' }),
+    (0, swagger_1.ApiParam)({ name: 'id', description: 'Booking ID', type: 'string' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Booking deleted successfully',
+        schema: {
+            example: {
+                message: 'Booking deleted successfully',
+                id: 'uuid',
+            },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Cannot delete a completed booking' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Only the booking owner can delete this booking' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Booking not found' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], BookingsController.prototype, "remove", null);
 exports.BookingsController = BookingsController = __decorate([
     (0, swagger_1.ApiTags)('bookings'),
     (0, common_1.Controller)('bookings'),

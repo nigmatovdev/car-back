@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { LocationGateway } from './location.gateway';
 import { LocationService } from './location.service';
+import { LocationController } from './location.controller';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
 import { PrismaModule } from '../prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
@@ -17,6 +18,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService],
     }),
   ],
+  controllers: [LocationController],
   providers: [LocationGateway, LocationService, WsJwtGuard],
   exports: [LocationService],
 })

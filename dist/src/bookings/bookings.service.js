@@ -80,17 +80,16 @@ let BookingsService = class BookingsService {
         if (!service.isActive) {
             throw new common_1.BadRequestException('Service is not active');
         }
-        const closestWasherId = await this.findClosestWasher(createBookingDto.latitude, createBookingDto.longitude);
         const booking = await this.prisma.booking.create({
             data: {
                 userId,
                 serviceId: createBookingDto.serviceId,
-                washerId: closestWasherId,
+                washerId: null,
                 latitude: new client_1.Prisma.Decimal(createBookingDto.latitude),
                 longitude: new client_1.Prisma.Decimal(createBookingDto.longitude),
                 date: new Date(createBookingDto.date),
                 time: createBookingDto.time,
-                status: closestWasherId ? client_1.BookingStatus.ASSIGNED : client_1.BookingStatus.PENDING,
+                status: client_1.BookingStatus.PENDING,
             },
             include: {
                 service: {
@@ -106,16 +105,11 @@ let BookingsService = class BookingsService {
                     select: {
                         id: true,
                         email: true,
+                        firstName: true,
+                        lastName: true,
+                        phone: true,
                     },
                 },
-                washer: closestWasherId
-                    ? {
-                        select: {
-                            id: true,
-                            email: true,
-                        },
-                    }
-                    : false,
             },
         });
         await this.prisma.payment.create({
@@ -359,6 +353,230 @@ let BookingsService = class BookingsService {
                 }
                 : null,
         }));
+    }
+    async cancel(id, userId, userRole) {
+        const booking = await this.prisma.booking.findUnique({
+            where: { id },
+            include: {
+                payment: true,
+            },
+        });
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found');
+        }
+        if (userRole !== 'ADMIN' && booking.userId !== userId) {
+            throw new common_1.ForbiddenException('Only the booking owner can cancel this booking');
+        }
+        if (booking.status === client_1.BookingStatus.CANCELLED) {
+            throw new common_1.BadRequestException('Booking is already cancelled');
+        }
+        if (booking.status === client_1.BookingStatus.COMPLETED) {
+            throw new common_1.BadRequestException('Cannot cancel a completed booking');
+        }
+        const updatedBooking = await this.prisma.booking.update({
+            where: { id },
+            data: {
+                status: client_1.BookingStatus.CANCELLED,
+            },
+            include: {
+                service: {
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        price: true,
+                        durationMin: true,
+                    },
+                },
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                    },
+                },
+                washer: {
+                    select: {
+                        id: true,
+                        email: true,
+                    },
+                },
+                payment: {
+                    select: {
+                        id: true,
+                        amount: true,
+                        status: true,
+                    },
+                },
+            },
+        });
+        if (booking.payment && booking.payment.status === client_1.PaymentStatus.PAID) {
+            await this.prisma.payment.update({
+                where: { bookingId: id },
+                data: {
+                    status: client_1.PaymentStatus.FAILED,
+                },
+            });
+        }
+        return {
+            ...updatedBooking,
+            latitude: updatedBooking.latitude.toNumber(),
+            longitude: updatedBooking.longitude.toNumber(),
+            service: {
+                ...updatedBooking.service,
+                price: updatedBooking.service.price.toNumber(),
+            },
+            payment: updatedBooking.payment
+                ? {
+                    ...updatedBooking.payment,
+                    amount: updatedBooking.payment.amount.toNumber(),
+                }
+                : null,
+        };
+    }
+    async findAvailableBookings(userRole) {
+        if (userRole !== 'WASHER' && userRole !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only washers can view available bookings');
+        }
+        const bookings = await this.prisma.booking.findMany({
+            where: {
+                status: client_1.BookingStatus.PENDING,
+            },
+            include: {
+                service: {
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        price: true,
+                        durationMin: true,
+                    },
+                },
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                        phone: true,
+                        address: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+        return bookings.map((booking) => ({
+            ...booking,
+            latitude: booking.latitude.toNumber(),
+            longitude: booking.longitude.toNumber(),
+            service: {
+                ...booking.service,
+                price: booking.service.price.toNumber(),
+            },
+        }));
+    }
+    async acceptBooking(bookingId, washerId, userRole) {
+        if (userRole !== 'WASHER' && userRole !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only washers can accept bookings');
+        }
+        const booking = await this.prisma.booking.findUnique({
+            where: { id: bookingId },
+        });
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found');
+        }
+        if (booking.status !== client_1.BookingStatus.PENDING) {
+            throw new common_1.BadRequestException(`Booking is not available. Current status: ${booking.status}`);
+        }
+        if (booking.washerId) {
+            throw new common_1.BadRequestException('Booking is already assigned to another washer');
+        }
+        const updatedBooking = await this.prisma.booking.update({
+            where: { id: bookingId },
+            data: {
+                washerId,
+                status: client_1.BookingStatus.ASSIGNED,
+            },
+            include: {
+                service: {
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        price: true,
+                        durationMin: true,
+                    },
+                },
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                        phone: true,
+                        address: true,
+                    },
+                },
+                washer: {
+                    select: {
+                        id: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                        phone: true,
+                    },
+                },
+                payment: {
+                    select: {
+                        id: true,
+                        amount: true,
+                        status: true,
+                    },
+                },
+            },
+        });
+        return {
+            ...updatedBooking,
+            latitude: updatedBooking.latitude.toNumber(),
+            longitude: updatedBooking.longitude.toNumber(),
+            service: {
+                ...updatedBooking.service,
+                price: updatedBooking.service.price.toNumber(),
+            },
+            payment: updatedBooking.payment
+                ? {
+                    ...updatedBooking.payment,
+                    amount: updatedBooking.payment.amount.toNumber(),
+                }
+                : null,
+        };
+    }
+    async remove(id, userId, userRole) {
+        const booking = await this.prisma.booking.findUnique({
+            where: { id },
+            include: {
+                payment: true,
+            },
+        });
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found');
+        }
+        if (userRole !== 'ADMIN' && booking.userId !== userId) {
+            throw new common_1.ForbiddenException('Only the booking owner can delete this booking');
+        }
+        if (booking.status === client_1.BookingStatus.COMPLETED) {
+            throw new common_1.BadRequestException('Cannot delete a completed booking');
+        }
+        if (booking.payment && booking.payment.status === client_1.PaymentStatus.PAID) {
+        }
+        await this.prisma.booking.delete({
+            where: { id },
+        });
+        return {
+            message: 'Booking deleted successfully',
+            id,
+        };
     }
 };
 exports.BookingsService = BookingsService;

@@ -136,6 +136,35 @@ export class AuthController {
     return this.authService.refresh(req.user.userId, req.user.email, req.user.role);
   }
 
+  @Get('status')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ 
+    summary: 'Get authentication status',
+    description: 'Returns the current authenticated user\'s email and role from the JWT token. Use this to verify your authentication status in Swagger UI.',
+  })
+  @ApiBearerAuth('JWT-auth')
+  @ApiResponse({
+    status: 200,
+    description: 'Authentication status retrieved successfully',
+    schema: {
+      example: {
+        authenticated: true,
+        email: 'user@example.com',
+        role: 'CUSTOMER',
+        userId: 'uuid',
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing token' })
+  getAuthStatus(@Request() req: RequestWithUser) {
+    return {
+      authenticated: true,
+      email: req.user.email,
+      role: req.user.role,
+      userId: req.user.userId,
+    };
+  }
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get current authenticated user' })

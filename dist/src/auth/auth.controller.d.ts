@@ -57,6 +57,12 @@ export declare class AuthController {
             isActive: boolean;
         };
     }>;
+    getAuthStatus(req: RequestWithUser): {
+        authenticated: boolean;
+        email: string;
+        role: string;
+        userId: string;
+    };
     me(req: RequestWithUser): Promise<{
         email: string;
         firstName: string | null;

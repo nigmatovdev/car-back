@@ -10,6 +10,7 @@ exports.LocationModule = void 0;
 const common_1 = require("@nestjs/common");
 const location_gateway_1 = require("./location.gateway");
 const location_service_1 = require("./location.service");
+const location_controller_1 = require("./location.controller");
 const ws_jwt_guard_1 = require("./guards/ws-jwt.guard");
 const prisma_module_1 = require("../prisma/prisma.module");
 const jwt_1 = require("@nestjs/jwt");
@@ -29,6 +30,7 @@ exports.LocationModule = LocationModule = __decorate([
                 inject: [config_1.ConfigService],
             }),
         ],
+        controllers: [location_controller_1.LocationController],
         providers: [location_gateway_1.LocationGateway, location_service_1.LocationService, ws_jwt_guard_1.WsJwtGuard],
         exports: [location_service_1.LocationService],
     })

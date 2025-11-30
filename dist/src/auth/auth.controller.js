@@ -40,6 +40,14 @@ let AuthController = class AuthController {
         }
         return this.authService.refresh(req.user.userId, req.user.email, req.user.role);
     }
+    getAuthStatus(req) {
+        return {
+            authenticated: true,
+            email: req.user.email,
+            role: req.user.role,
+            userId: req.user.userId,
+        };
+    }
     async me(req) {
         return this.authService.me(req.user.userId);
     }
@@ -146,6 +154,32 @@ __decorate([
     __metadata("design:paramtypes", [Object, refresh_dto_1.RefreshDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "refresh", null);
+__decorate([
+    (0, common_1.Get)('status'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get authentication status',
+        description: 'Returns the current authenticated user\'s email and role from the JWT token. Use this to verify your authentication status in Swagger UI.',
+    }),
+    (0, swagger_1.ApiBearerAuth)('JWT-auth'),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Authentication status retrieved successfully',
+        schema: {
+            example: {
+                authenticated: true,
+                email: 'user@example.com',
+                role: 'CUSTOMER',
+                userId: 'uuid',
+            },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized - Invalid or missing token' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "getAuthStatus", null);
 __decorate([
     (0, common_1.Get)('me'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

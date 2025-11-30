@@ -59,7 +59,13 @@ async function bootstrap() {
   // Swagger/OpenAPI documentation setup
   const config = new DocumentBuilder()
     .setTitle('Car Wash API')
-    .setDescription('RESTful API for Car Wash Management System')
+    .setDescription(
+      'RESTful API for Car Wash Management System\n\n' +
+      '**Authentication:** Click the "Authorize" button above and enter your JWT token.\n' +
+      'After authorizing, use `GET /auth/status` to verify your authentication status (email and role).\n\n' +
+      '**WebSocket API:** For real-time location tracking, see [Location API Documentation](./docs/API_LOCATION.md)\n' +
+      'WebSocket endpoint: `ws://localhost:3000/ws/location`',
+    )
     .setVersion('1.0')
     .addBearerAuth(
       {
@@ -77,6 +83,7 @@ async function bootstrap() {
     .addTag('services', 'Service management endpoints')
     .addTag('bookings', 'Booking management endpoints')
     .addTag('payments', 'Payment processing endpoints')
+    .addTag('location', 'Location tracking (WebSocket) - See docs/API_LOCATION.md for WebSocket API documentation')
     .addTag('app', 'Application health check')
     .build();
 

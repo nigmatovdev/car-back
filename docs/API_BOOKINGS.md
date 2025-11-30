@@ -35,19 +35,19 @@ CANCELLED  CANCELLED  CANCELLED  CANCELLED  CANCELLED
 - `IN_PROGRESS` → `COMPLETED` or `CANCELLED`
 - `COMPLETED` / `CANCELLED` are terminal states (no further transitions)
 
-## Automatic Washer Assignment
+## Manual Washer Assignment
 
 When a booking is created:
-1. System finds all available washers with location data
-2. Calculates distance using Haversine formula
-3. Auto-assigns the closest washer
-4. Sets status to `ASSIGNED` if washer found, `PENDING` if none available
+1. Booking is created with status `PENDING` (no automatic assignment)
+2. Washers can view all available bookings via `GET /bookings/available`
+3. Washer accepts a booking via `PATCH /bookings/:id/accept`
+4. Booking status changes to `ASSIGNED` and washer is assigned
 
 ## Endpoints
 
 ### 1. Create Booking
 
-Create a new booking. Automatically assigns closest washer and creates payment record.
+Create a new booking. Booking is created with `PENDING` status. Washers must accept the booking manually.
 
 **Endpoint:** `POST /bookings`
 
@@ -105,7 +105,7 @@ Create a new booking. Automatically assigns closest washer and creates payment r
 }
 ```
 
-**Note:** If no washer is available, `washerId` and `washer` will be `null`, and `status` will be `PENDING`.
+**Note:** All new bookings start with `status: PENDING` and `washerId: null`. Washers must accept the booking to assign themselves.
 
 **Error Responses:**
 - `400 Bad Request`: Validation error or service not active
@@ -373,27 +373,163 @@ curl -X PATCH http://localhost:3000/bookings/770e8400-e29b-41d4-a716-44665544000
 
 **Example Status Flow:**
 ```bash
-# 1. Booking created (status: ASSIGNED)
-# 2. Washer starts journey
+# 1. Booking created (status: PENDING)
+# 2. Washer accepts booking
+PATCH /bookings/{id}/accept
+# Status changes to ASSIGNED
+
+# 3. Washer starts journey
 PATCH /bookings/{id}/status
 { "status": "EN_ROUTE" }
 
-# 3. Washer arrives
+# 4. Washer arrives
 PATCH /bookings/{id}/status
 { "status": "ARRIVED" }
 
-# 4. Washer starts work
+# 5. Washer starts work
 PATCH /bookings/{id}/status
 { "status": "IN_PROGRESS" }
 
-# 5. Washer completes work
+# 6. Washer completes work
 PATCH /bookings/{id}/status
 { "status": "COMPLETED" }
 ```
 
 ---
 
-### 6. Cancel Booking (Owner/Admin Only)
+### 6. Get Available Bookings (Washer Only)
+
+Get all bookings that are available for acceptance (PENDING status).
+
+**Endpoint:** `GET /bookings/available`
+
+**Authentication:** Required
+
+**Role Required:** WASHER or ADMIN
+
+**Response (200 OK):**
+```json
+[
+  {
+    "id": "770e8400-e29b-41d4-a716-446655440002",
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "serviceId": "660e8400-e29b-41d4-a716-446655440001",
+    "washerId": null,
+    "latitude": 40.7128,
+    "longitude": -74.0060,
+    "date": "2024-12-25T00:00:00.000Z",
+    "time": "14:30",
+    "status": "PENDING",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "service": {
+      "id": "660e8400-e29b-41d4-a716-446655440001",
+      "title": "Basic Car Wash",
+      "description": "Exterior wash and dry",
+      "price": 25.99,
+      "durationMin": 30
+    },
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "user@example.com",
+      "firstName": "John",
+      "lastName": "Doe",
+      "phone": "+1234567890",
+      "address": "123 Main St"
+    }
+  }
+]
+```
+
+**Error Responses:**
+- `401 Unauthorized`: Invalid or expired token
+- `403 Forbidden`: Only washers can view available bookings
+
+**Example (cURL):**
+```bash
+curl http://localhost:3000/bookings/available \
+  -H "Authorization: Bearer <washer-token>"
+```
+
+---
+
+### 7. Accept Booking (Washer Only)
+
+Accept and assign yourself to a PENDING booking.
+
+**Endpoint:** `PATCH /bookings/:id/accept`
+
+**Authentication:** Required
+
+**Role Required:** WASHER or ADMIN
+
+**Path Parameters:**
+- `id` (string, required): Booking UUID
+
+**Response (200 OK):**
+```json
+{
+  "id": "770e8400-e29b-41d4-a716-446655440002",
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "serviceId": "660e8400-e29b-41d4-a716-446655440001",
+  "washerId": "880e8400-e29b-41d4-a716-446655440003",
+  "latitude": 40.7128,
+  "longitude": -74.0060,
+  "date": "2024-12-25T00:00:00.000Z",
+  "time": "14:30",
+  "status": "ASSIGNED",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T12:00:00.000Z",
+  "service": {
+    "id": "660e8400-e29b-41d4-a716-446655440001",
+    "title": "Basic Car Wash",
+    "description": "Exterior wash and dry",
+    "price": 25.99,
+    "durationMin": 30
+  },
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "phone": "+1234567890",
+    "address": "123 Main St"
+  },
+  "washer": {
+    "id": "880e8400-e29b-41d4-a716-446655440003",
+    "email": "washer@example.com",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "phone": "+0987654321"
+  },
+  "payment": {
+    "id": "990e8400-e29b-41d4-a716-446655440004",
+    "amount": 25.99,
+    "status": "UNPAID"
+  }
+}
+```
+
+**Acceptance Rules:**
+- Booking must be in `PENDING` status
+- Booking must not already be assigned to another washer
+- Status automatically changes to `ASSIGNED` upon acceptance
+
+**Error Responses:**
+- `400 Bad Request`: Booking is not available or already assigned
+- `401 Unauthorized`: Invalid or expired token
+- `403 Forbidden`: Only washers can accept bookings
+- `404 Not Found`: Booking not found
+
+**Example (cURL):**
+```bash
+curl -X PATCH http://localhost:3000/bookings/770e8400-e29b-41d4-a716-446655440002/accept \
+  -H "Authorization: Bearer <washer-token>"
+```
+
+---
+
+### 8. Cancel Booking (Owner/Admin Only)
 
 Cancel a booking. Only the booking owner or admin can cancel a booking.
 
@@ -470,7 +606,7 @@ curl -X PATCH http://localhost:3000/bookings/770e8400-e29b-41d4-a716-44665544000
 
 ---
 
-### 7. Delete Booking (Owner/Admin Only)
+### 9. Delete Booking (Owner/Admin Only)
 
 Permanently delete a booking. Only the booking owner or admin can delete a booking.
 
@@ -561,7 +697,9 @@ curl -X DELETE http://localhost:3000/bookings/770e8400-e29b-41d4-a716-4466554400
 - Payment status defaults to `UNPAID`
 
 ### 3. Status Management
-- Initial status: `ASSIGNED` (if washer found) or `PENDING` (if not)
+- Initial status: `PENDING` (all new bookings)
+- Washers must accept bookings manually via `PATCH /bookings/:id/accept`
+- Status changes to `ASSIGNED` when washer accepts
 - Status transitions are validated to ensure proper flow
 - Terminal states: `COMPLETED`, `CANCELLED`
 
@@ -573,6 +711,8 @@ curl -X DELETE http://localhost:3000/bookings/770e8400-e29b-41d4-a716-4466554400
 | `GET /bookings/me` | ✅ (own only) | ✅ (own only) | ✅ (own only) |
 | `GET /bookings` | ❌ | ❌ | ✅ |
 | `GET /bookings/:id` | ✅ (own only) | ✅ (assigned only) | ✅ (all) |
+| `GET /bookings/available` | ❌ | ✅ | ✅ |
+| `PATCH /bookings/:id/accept` | ❌ | ✅ | ✅ |
 | `PATCH /bookings/:id/status` | ❌ | ✅ (assigned only) | ✅ (all) |
 | `PATCH /bookings/:id/cancel` | ✅ (own only) | ❌ | ✅ (all) |
 | `DELETE /bookings/:id` | ✅ (own only) | ❌ | ✅ (all) |
@@ -632,6 +772,16 @@ PATCH /bookings/{id}/status
 ### User Views Their Bookings
 ```bash
 GET /bookings/me
+```
+
+### Washer Views Available Bookings
+```bash
+GET /bookings/available
+```
+
+### Washer Accepts a Booking
+```bash
+PATCH /bookings/{id}/accept
 ```
 
 ### User Cancels Their Booking
