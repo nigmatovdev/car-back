@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingStatusDto } from './dto/update-booking-status.dto';
-import { BookingStatus, Prisma } from '@prisma/client';
+import { BookingStatus, PaymentStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class BookingsService {
@@ -420,6 +420,97 @@ export class BookingsService {
           }
         : null,
     }));
+  }
+
+  async cancel(id: string, userId: string, userRole: string) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id },
+      include: {
+        payment: true,
+      },
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    // Check if user is the booking owner or admin
+    if (userRole !== 'ADMIN' && booking.userId !== userId) {
+      throw new ForbiddenException('Only the booking owner can cancel this booking');
+    }
+
+    // Check if booking can be cancelled
+    if (booking.status === BookingStatus.CANCELLED) {
+      throw new BadRequestException('Booking is already cancelled');
+    }
+
+    if (booking.status === BookingStatus.COMPLETED) {
+      throw new BadRequestException('Cannot cancel a completed booking');
+    }
+
+    // Update booking status to CANCELLED
+    const updatedBooking = await this.prisma.booking.update({
+      where: { id },
+      data: {
+        status: BookingStatus.CANCELLED,
+      },
+      include: {
+        service: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            price: true,
+            durationMin: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        washer: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    // If payment was made, mark it as failed (refund would be handled separately via Stripe)
+    if (booking.payment && booking.payment.status === PaymentStatus.PAID) {
+      await this.prisma.payment.update({
+        where: { bookingId: id },
+        data: {
+          status: PaymentStatus.FAILED, // Mark as failed for cancelled bookings (refund handled separately)
+        },
+      });
+    }
+
+    return {
+      ...updatedBooking,
+      latitude: updatedBooking.latitude.toNumber(),
+      longitude: updatedBooking.longitude.toNumber(),
+      service: {
+        ...updatedBooking.service,
+        price: updatedBooking.service.price.toNumber(),
+      },
+      payment: updatedBooking.payment
+        ? {
+            ...updatedBooking.payment,
+            amount: updatedBooking.payment.amount.toNumber(),
+          }
+        : null,
+    };
   }
 }
 

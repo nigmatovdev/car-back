@@ -393,6 +393,83 @@ PATCH /bookings/{id}/status
 
 ---
 
+### 6. Cancel Booking (Owner/Admin Only)
+
+Cancel a booking. Only the booking owner or admin can cancel a booking.
+
+**Endpoint:** `PATCH /bookings/:id/cancel`
+
+**Authentication:** Required
+
+**Access Control:**
+- Users can cancel their own bookings
+- Admins can cancel any booking
+
+**Path Parameters:**
+- `id` (string, required): Booking UUID
+
+**Response (200 OK):**
+```json
+{
+  "id": "770e8400-e29b-41d4-a716-446655440002",
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "serviceId": "660e8400-e29b-41d4-a716-446655440001",
+  "washerId": "880e8400-e29b-41d4-a716-446655440003",
+  "latitude": 40.7128,
+  "longitude": -74.0060,
+  "date": "2024-12-25T00:00:00.000Z",
+  "time": "14:30",
+  "status": "CANCELLED",
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T12:00:00.000Z",
+  "service": {
+    "id": "660e8400-e29b-41d4-a716-446655440001",
+    "title": "Basic Car Wash",
+    "description": "Exterior wash and dry",
+    "price": 25.99,
+    "durationMin": 30
+  },
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com"
+  },
+  "washer": {
+    "id": "880e8400-e29b-41d4-a716-446655440003",
+    "email": "washer@example.com"
+  },
+  "payment": {
+    "id": "990e8400-e29b-41d4-a716-446655440004",
+    "amount": 25.99,
+    "status": "FAILED"
+  }
+}
+```
+
+**Cancellation Rules:**
+- Cannot cancel a booking that is already `CANCELLED`
+- Cannot cancel a booking that is `COMPLETED`
+- If payment was `PAID`, payment status is updated to `FAILED` (refund handled separately via Stripe)
+
+**Error Responses:**
+- `400 Bad Request`: Booking cannot be cancelled (already cancelled or completed)
+- `401 Unauthorized`: Invalid or expired token
+- `403 Forbidden`: Only the booking owner can cancel this booking
+- `404 Not Found`: Booking not found
+
+**Example (cURL - Owner):**
+```bash
+curl -X PATCH http://localhost:3000/bookings/770e8400-e29b-41d4-a716-446655440002/cancel \
+  -H "Authorization: Bearer <user-token>"
+```
+
+**Example (cURL - Admin):**
+```bash
+curl -X PATCH http://localhost:3000/bookings/770e8400-e29b-41d4-a716-446655440002/cancel \
+  -H "Authorization: Bearer <admin-token>"
+```
+
+---
+
 ## Booking Model
 
 ### Fields
@@ -444,6 +521,7 @@ PATCH /bookings/{id}/status
 | `GET /bookings` | ❌ | ❌ | ✅ |
 | `GET /bookings/:id` | ✅ (own only) | ✅ (assigned only) | ✅ (all) |
 | `PATCH /bookings/:id/status` | ❌ | ✅ (assigned only) | ✅ (all) |
+| `PATCH /bookings/:id/cancel` | ✅ (own only) | ❌ | ✅ (all) |
 
 ## Error Handling
 
@@ -500,6 +578,11 @@ PATCH /bookings/{id}/status
 ### User Views Their Bookings
 ```bash
 GET /bookings/me
+```
+
+### User Cancels Their Booking
+```bash
+PATCH /bookings/{id}/cancel
 ```
 
 ### Admin Views All Bookings

@@ -186,5 +186,56 @@ export class BookingsController {
       updateStatusDto,
     );
   }
+
+  @Patch(':id/cancel')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cancel a booking (Owner only)' })
+  @ApiParam({ name: 'id', description: 'Booking ID', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    description: 'Booking cancelled successfully',
+    schema: {
+      example: {
+        id: 'uuid',
+        userId: 'uuid',
+        serviceId: 'uuid',
+        washerId: 'uuid',
+        latitude: 40.7128,
+        longitude: -74.0060,
+        date: '2024-12-25T00:00:00.000Z',
+        time: '14:30',
+        status: 'CANCELLED',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+        service: {
+          id: 'uuid',
+          title: 'Basic Car Wash',
+          description: 'Exterior wash and dry',
+          price: 25.99,
+          durationMin: 30,
+        },
+        user: {
+          id: 'uuid',
+          email: 'user@example.com',
+        },
+        washer: {
+          id: 'uuid',
+          email: 'washer@example.com',
+        },
+        payment: {
+          id: 'uuid',
+          amount: 25.99,
+          status: 'FAILED',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Booking cannot be cancelled (already cancelled or completed)' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Only the booking owner can cancel this booking' })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
+  cancel(@Request() req: RequestWithUser, @Param('id') id: string) {
+    return this.bookingsService.cancel(id, req.user.userId, req.user.role);
+  }
 }
 
