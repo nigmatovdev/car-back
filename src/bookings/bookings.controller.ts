@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Patch,
+  Delete,
   Param,
   UseGuards,
   Request,
@@ -236,6 +237,28 @@ export class BookingsController {
   @ApiResponse({ status: 404, description: 'Booking not found' })
   cancel(@Request() req: RequestWithUser, @Param('id') id: string) {
     return this.bookingsService.cancel(id, req.user.userId, req.user.role);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a booking (Owner only)' })
+  @ApiParam({ name: 'id', description: 'Booking ID', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    description: 'Booking deleted successfully',
+    schema: {
+      example: {
+        message: 'Booking deleted successfully',
+        id: 'uuid',
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Cannot delete a completed booking' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Only the booking owner can delete this booking' })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
+  remove(@Request() req: RequestWithUser, @Param('id') id: string) {
+    return this.bookingsService.remove(id, req.user.userId, req.user.role);
   }
 }
 

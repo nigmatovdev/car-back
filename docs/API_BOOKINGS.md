@@ -470,6 +470,59 @@ curl -X PATCH http://localhost:3000/bookings/770e8400-e29b-41d4-a716-44665544000
 
 ---
 
+### 7. Delete Booking (Owner/Admin Only)
+
+Permanently delete a booking. Only the booking owner or admin can delete a booking.
+
+**Endpoint:** `DELETE /bookings/:id`
+
+**Authentication:** Required
+
+**Access Control:**
+- Users can delete their own bookings
+- Admins can delete any booking
+
+**Path Parameters:**
+- `id` (string, required): Booking UUID
+
+**Response (200 OK):**
+```json
+{
+  "message": "Booking deleted successfully",
+  "id": "770e8400-e29b-41d4-a716-446655440002"
+}
+```
+
+**Deletion Rules:**
+- Cannot delete a booking that is `COMPLETED` (for record keeping)
+- Associated payment will be automatically deleted (due to cascade delete)
+- **Warning**: If payment was `PAID`, the payment record will be deleted. Handle refunds separately via Stripe before deletion.
+
+**Error Responses:**
+- `400 Bad Request`: Cannot delete a completed booking
+- `401 Unauthorized`: Invalid or expired token
+- `403 Forbidden`: Only the booking owner can delete this booking
+- `404 Not Found`: Booking not found
+
+**Example (cURL - Owner):**
+```bash
+curl -X DELETE http://localhost:3000/bookings/770e8400-e29b-41d4-a716-446655440002 \
+  -H "Authorization: Bearer <user-token>"
+```
+
+**Example (cURL - Admin):**
+```bash
+curl -X DELETE http://localhost:3000/bookings/770e8400-e29b-41d4-a716-446655440002 \
+  -H "Authorization: Bearer <admin-token>"
+```
+
+**Important Notes:**
+- This is a **permanent deletion** - the booking and its associated payment will be removed from the database
+- Consider using the cancel endpoint instead if you want to keep records
+- For paid bookings, ensure refunds are processed before deletion
+
+---
+
 ## Booking Model
 
 ### Fields
@@ -522,6 +575,7 @@ curl -X PATCH http://localhost:3000/bookings/770e8400-e29b-41d4-a716-44665544000
 | `GET /bookings/:id` | ✅ (own only) | ✅ (assigned only) | ✅ (all) |
 | `PATCH /bookings/:id/status` | ❌ | ✅ (assigned only) | ✅ (all) |
 | `PATCH /bookings/:id/cancel` | ✅ (own only) | ❌ | ✅ (all) |
+| `DELETE /bookings/:id` | ✅ (own only) | ❌ | ✅ (all) |
 
 ## Error Handling
 
@@ -583,6 +637,11 @@ GET /bookings/me
 ### User Cancels Their Booking
 ```bash
 PATCH /bookings/{id}/cancel
+```
+
+### User Deletes Their Booking
+```bash
+DELETE /bookings/{id}
 ```
 
 ### Admin Views All Bookings
