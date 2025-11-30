@@ -35,6 +35,9 @@ let BookingsController = class BookingsController {
     findAll(req) {
         return this.bookingsService.findAll(req.user.role);
     }
+    findAvailableBookings(req) {
+        return this.bookingsService.findAvailableBookings(req.user.role);
+    }
     findOne(req, id) {
         return this.bookingsService.findOne(id, req.user.userId, req.user.role);
     }
@@ -43,9 +46,6 @@ let BookingsController = class BookingsController {
     }
     cancel(req, id) {
         return this.bookingsService.cancel(id, req.user.userId, req.user.role);
-    }
-    findAvailableBookings(req) {
-        return this.bookingsService.findAvailableBookings(req.user.role);
     }
     acceptBooking(req, id) {
         return this.bookingsService.acceptBooking(id, req.user.userId, req.user.role);
@@ -161,6 +161,54 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], BookingsController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)('available'),
+    (0, common_1.UseGuards)(washer_guard_1.WasherGuard),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Get available bookings (Washer only)' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Available bookings retrieved successfully',
+        schema: {
+            example: [
+                {
+                    id: 'uuid',
+                    userId: 'uuid',
+                    serviceId: 'uuid',
+                    washerId: null,
+                    latitude: 40.7128,
+                    longitude: -74.0060,
+                    date: '2024-12-25T00:00:00.000Z',
+                    time: '14:30',
+                    status: 'PENDING',
+                    createdAt: '2024-01-01T00:00:00.000Z',
+                    updatedAt: '2024-01-01T00:00:00.000Z',
+                    service: {
+                        id: 'uuid',
+                        title: 'Basic Car Wash',
+                        description: 'Exterior wash and dry',
+                        price: 25.99,
+                        durationMin: 30,
+                    },
+                    user: {
+                        id: 'uuid',
+                        email: 'user@example.com',
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        phone: '+1234567890',
+                        address: '123 Main St',
+                    },
+                },
+            ],
+        },
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Only washers can view available bookings' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], BookingsController.prototype, "findAvailableBookings", null);
+__decorate([
     (0, common_1.Get)(':id'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Get booking by ID' }),
@@ -261,54 +309,6 @@ __decorate([
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", void 0)
 ], BookingsController.prototype, "cancel", null);
-__decorate([
-    (0, common_1.Get)('available'),
-    (0, common_1.UseGuards)(washer_guard_1.WasherGuard),
-    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, swagger_1.ApiOperation)({ summary: 'Get available bookings (Washer only)' }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        description: 'Available bookings retrieved successfully',
-        schema: {
-            example: [
-                {
-                    id: 'uuid',
-                    userId: 'uuid',
-                    serviceId: 'uuid',
-                    washerId: null,
-                    latitude: 40.7128,
-                    longitude: -74.0060,
-                    date: '2024-12-25T00:00:00.000Z',
-                    time: '14:30',
-                    status: 'PENDING',
-                    createdAt: '2024-01-01T00:00:00.000Z',
-                    updatedAt: '2024-01-01T00:00:00.000Z',
-                    service: {
-                        id: 'uuid',
-                        title: 'Basic Car Wash',
-                        description: 'Exterior wash and dry',
-                        price: 25.99,
-                        durationMin: 30,
-                    },
-                    user: {
-                        id: 'uuid',
-                        email: 'user@example.com',
-                        firstName: 'John',
-                        lastName: 'Doe',
-                        phone: '+1234567890',
-                        address: '123 Main St',
-                    },
-                },
-            ],
-        },
-    }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
-    (0, swagger_1.ApiResponse)({ status: 403, description: 'Only washers can view available bookings' }),
-    __param(0, (0, common_1.Request)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], BookingsController.prototype, "findAvailableBookings", null);
 __decorate([
     (0, common_1.Patch)(':id/accept'),
     (0, common_1.UseGuards)(washer_guard_1.WasherGuard),

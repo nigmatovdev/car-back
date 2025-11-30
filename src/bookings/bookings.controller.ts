@@ -139,6 +139,52 @@ export class BookingsController {
     return this.bookingsService.findAll(req.user.role);
   }
 
+  @Get('available')
+  @UseGuards(WasherGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get available bookings (Washer only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Available bookings retrieved successfully',
+    schema: {
+      example: [
+        {
+          id: 'uuid',
+          userId: 'uuid',
+          serviceId: 'uuid',
+          washerId: null,
+          latitude: 40.7128,
+          longitude: -74.0060,
+          date: '2024-12-25T00:00:00.000Z',
+          time: '14:30',
+          status: 'PENDING',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-01T00:00:00.000Z',
+          service: {
+            id: 'uuid',
+            title: 'Basic Car Wash',
+            description: 'Exterior wash and dry',
+            price: 25.99,
+            durationMin: 30,
+          },
+          user: {
+            id: 'uuid',
+            email: 'user@example.com',
+            firstName: 'John',
+            lastName: 'Doe',
+            phone: '+1234567890',
+            address: '123 Main St',
+          },
+        },
+      ],
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Only washers can view available bookings' })
+  findAvailableBookings(@Request() req: RequestWithUser) {
+    return this.bookingsService.findAvailableBookings(req.user.role);
+  }
+
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get booking by ID' })
@@ -237,52 +283,6 @@ export class BookingsController {
   @ApiResponse({ status: 404, description: 'Booking not found' })
   cancel(@Request() req: RequestWithUser, @Param('id') id: string) {
     return this.bookingsService.cancel(id, req.user.userId, req.user.role);
-  }
-
-  @Get('available')
-  @UseGuards(WasherGuard)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get available bookings (Washer only)' })
-  @ApiResponse({
-    status: 200,
-    description: 'Available bookings retrieved successfully',
-    schema: {
-      example: [
-        {
-          id: 'uuid',
-          userId: 'uuid',
-          serviceId: 'uuid',
-          washerId: null,
-          latitude: 40.7128,
-          longitude: -74.0060,
-          date: '2024-12-25T00:00:00.000Z',
-          time: '14:30',
-          status: 'PENDING',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-01T00:00:00.000Z',
-          service: {
-            id: 'uuid',
-            title: 'Basic Car Wash',
-            description: 'Exterior wash and dry',
-            price: 25.99,
-            durationMin: 30,
-          },
-          user: {
-            id: 'uuid',
-            email: 'user@example.com',
-            firstName: 'John',
-            lastName: 'Doe',
-            phone: '+1234567890',
-            address: '123 Main St',
-          },
-        },
-      ],
-    },
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Only washers can view available bookings' })
-  findAvailableBookings(@Request() req: RequestWithUser) {
-    return this.bookingsService.findAvailableBookings(req.user.role);
   }
 
   @Patch(':id/accept')
