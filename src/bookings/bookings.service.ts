@@ -639,6 +639,138 @@ export class BookingsService {
     };
   }
 
+  async findWasherActiveBookings(washerId: string, userRole: string) {
+    // Only washers and admins can view their active bookings
+    if (userRole !== 'WASHER' && userRole !== 'ADMIN') {
+      throw new ForbiddenException('Only washers can view their active bookings');
+    }
+
+    // Get all active bookings for this washer (not completed or cancelled)
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        washerId,
+        status: {
+          in: [
+            BookingStatus.ASSIGNED,
+            BookingStatus.EN_ROUTE,
+            BookingStatus.ARRIVED,
+            BookingStatus.IN_PROGRESS,
+          ],
+        },
+      },
+      include: {
+        service: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            price: true,
+            durationMin: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            address: true,
+          },
+        },
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            status: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return bookings.map((booking) => ({
+      ...booking,
+      latitude: booking.latitude.toNumber(),
+      longitude: booking.longitude.toNumber(),
+      service: {
+        ...booking.service,
+        price: booking.service.price.toNumber(),
+      },
+      payment: booking.payment
+        ? {
+            ...booking.payment,
+            amount: booking.payment.amount.toNumber(),
+          }
+        : null,
+    }));
+  }
+
+  async findWasherOrderHistory(washerId: string, userRole: string) {
+    // Only washers and admins can view their order history
+    if (userRole !== 'WASHER' && userRole !== 'ADMIN') {
+      throw new ForbiddenException('Only washers can view their order history');
+    }
+
+    // Get all completed bookings for this washer
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        washerId,
+        status: BookingStatus.COMPLETED,
+      },
+      include: {
+        service: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            price: true,
+            durationMin: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            address: true,
+          },
+        },
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            status: true,
+            paymentDate: true,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+
+    return bookings.map((booking) => ({
+      ...booking,
+      latitude: booking.latitude.toNumber(),
+      longitude: booking.longitude.toNumber(),
+      service: {
+        ...booking.service,
+        price: booking.service.price.toNumber(),
+      },
+      payment: booking.payment
+        ? {
+            ...booking.payment,
+            amount: booking.payment.amount.toNumber(),
+          }
+        : null,
+    }));
+  }
+
   async remove(id: string, userId: string, userRole: string) {
     const booking = await this.prisma.booking.findUnique({
       where: { id },

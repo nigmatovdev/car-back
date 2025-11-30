@@ -49,6 +49,7 @@ model User {
   address      String?  // User's address for service location
   role         Role     @default(CUSTOMER)
   isActive     Boolean  @default(true)
+  creditBalance Decimal @default(0) @db.Decimal(10, 2) // Wallet/credit balance for payments
   refreshToken String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

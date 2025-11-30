@@ -23,6 +23,8 @@ import {
 import { PaymentsService } from './payments.service';
 import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import { ConfirmDemoPaymentDto } from './dto/confirm-demo-payment.dto';
+import { TopUpCreditDto } from './dto/top-up-credit.dto';
+import { PayWithCreditDto } from './dto/pay-with-credit.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import Stripe from 'stripe';
@@ -169,6 +171,69 @@ export class PaymentsController {
       req.user.userId,
       confirmDemoPaymentDto.bookingId,
     );
+  }
+
+  @Post('top-up')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Top up credit balance (Demo mode supported)' })
+  @ApiBody({ type: TopUpCreditDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Credit balance topped up successfully',
+    schema: {
+      example: {
+        message: 'Credit balance topped up successfully',
+        previousBalance: 50.0,
+        addedAmount: 100.0,
+        newBalance: 150.0,
+        demoMode: true,
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Invalid amount' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  topUpCredit(@Request() req: RequestWithUser, @Body() topUpCreditDto: TopUpCreditDto) {
+    return this.paymentsService.topUpCredit(req.user.userId, topUpCreditDto.amount);
+  }
+
+  @Post('pay-with-credit')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Pay for booking using credit balance' })
+  @ApiBody({ type: PayWithCreditDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Payment successful using credit balance',
+    schema: {
+      example: {
+        message: 'Payment successful using credit balance',
+        payment: {
+          id: 'uuid',
+          bookingId: 'uuid',
+          userId: 'uuid',
+          amount: 25.99,
+          status: 'PAID',
+          paymentDate: '2024-01-01T12:00:00.000Z',
+        },
+        creditBalance: {
+          previousBalance: 150.0,
+          deductedAmount: 25.99,
+          newBalance: 124.01,
+        },
+        demoMode: true,
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Insufficient credit balance or booking already paid' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Access denied' })
+  @ApiResponse({ status: 404, description: 'Booking or payment not found' })
+  payWithCredit(@Request() req: RequestWithUser, @Body() payWithCreditDto: PayWithCreditDto) {
+    return this.paymentsService.payWithCredit(req.user.userId, payWithCreditDto.bookingId);
   }
 
   @Get(':bookingId')

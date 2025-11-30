@@ -38,6 +38,12 @@ let BookingsController = class BookingsController {
     findAvailableBookings(req) {
         return this.bookingsService.findAvailableBookings(req.user.role);
     }
+    findWasherActiveBookings(req) {
+        return this.bookingsService.findWasherActiveBookings(req.user.userId, req.user.role);
+    }
+    findWasherOrderHistory(req) {
+        return this.bookingsService.findWasherOrderHistory(req.user.userId, req.user.role);
+    }
     findOne(req, id) {
         return this.bookingsService.findOne(id, req.user.userId, req.user.role);
     }
@@ -208,6 +214,113 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], BookingsController.prototype, "findAvailableBookings", null);
+__decorate([
+    (0, common_1.Get)('washer/active'),
+    (0, common_1.UseGuards)(washer_guard_1.WasherGuard),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Get active bookings for washer (Washer only)' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Active bookings retrieved successfully',
+        schema: {
+            example: [
+                {
+                    id: 'uuid',
+                    userId: 'uuid',
+                    serviceId: 'uuid',
+                    washerId: 'uuid',
+                    latitude: 40.7128,
+                    longitude: -74.0060,
+                    date: '2024-12-25T00:00:00.000Z',
+                    time: '14:30',
+                    status: 'ASSIGNED',
+                    createdAt: '2024-01-01T00:00:00.000Z',
+                    updatedAt: '2024-01-01T00:00:00.000Z',
+                    service: {
+                        id: 'uuid',
+                        title: 'Basic Car Wash',
+                        description: 'Exterior wash and dry',
+                        price: 25.99,
+                        durationMin: 30,
+                    },
+                    user: {
+                        id: 'uuid',
+                        email: 'user@example.com',
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        phone: '+1234567890',
+                        address: '123 Main St',
+                    },
+                    payment: {
+                        id: 'uuid',
+                        amount: 25.99,
+                        status: 'UNPAID',
+                    },
+                },
+            ],
+        },
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Only washers can view their active bookings' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], BookingsController.prototype, "findWasherActiveBookings", null);
+__decorate([
+    (0, common_1.Get)('washer/history'),
+    (0, common_1.UseGuards)(washer_guard_1.WasherGuard),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Get order history for washer (Washer only)' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Order history retrieved successfully',
+        schema: {
+            example: [
+                {
+                    id: 'uuid',
+                    userId: 'uuid',
+                    serviceId: 'uuid',
+                    washerId: 'uuid',
+                    latitude: 40.7128,
+                    longitude: -74.0060,
+                    date: '2024-12-25T00:00:00.000Z',
+                    time: '14:30',
+                    status: 'COMPLETED',
+                    createdAt: '2024-01-01T00:00:00.000Z',
+                    updatedAt: '2024-01-01T12:00:00.000Z',
+                    service: {
+                        id: 'uuid',
+                        title: 'Basic Car Wash',
+                        description: 'Exterior wash and dry',
+                        price: 25.99,
+                        durationMin: 30,
+                    },
+                    user: {
+                        id: 'uuid',
+                        email: 'user@example.com',
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        phone: '+1234567890',
+                        address: '123 Main St',
+                    },
+                    payment: {
+                        id: 'uuid',
+                        amount: 25.99,
+                        status: 'PAID',
+                        paymentDate: '2024-01-01T12:00:00.000Z',
+                    },
+                },
+            ],
+        },
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Only washers can view their order history' }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], BookingsController.prototype, "findWasherOrderHistory", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),

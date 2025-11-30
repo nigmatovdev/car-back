@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException 
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import Stripe from 'stripe';
-import { PaymentStatus } from '@prisma/client';
+import { PaymentStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class PaymentsService {
@@ -302,6 +302,163 @@ export class PaymentsService {
           price: payment.booking.service.price.toNumber(),
         },
       },
+    };
+  }
+
+  async topUpCredit(userId: string, amount: number) {
+    // Get current user
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        creditBalance: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Add amount to credit balance
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        creditBalance: {
+          increment: new Prisma.Decimal(amount),
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        creditBalance: true,
+      },
+    });
+
+    return {
+      message: 'Credit balance topped up successfully',
+      previousBalance: user.creditBalance.toNumber(),
+      addedAmount: amount,
+      newBalance: updatedUser.creditBalance.toNumber(),
+      demoMode: this.isDemoMode,
+    };
+  }
+
+  async payWithCredit(userId: string, bookingId: string) {
+    // Get booking and payment
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        payment: true,
+        service: {
+          select: {
+            id: true,
+            title: true,
+            price: true,
+          },
+        },
+      },
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    // Check if booking belongs to user
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('You can only pay for your own bookings');
+    }
+
+    // Check if payment exists
+    if (!booking.payment) {
+      throw new NotFoundException('Payment record not found for this booking');
+    }
+
+    // Check if already paid
+    if (booking.payment.status === PaymentStatus.PAID) {
+      throw new BadRequestException('Booking is already paid');
+    }
+
+    // Get user credit balance
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        creditBalance: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const paymentAmount = booking.payment.amount.toNumber();
+    const currentBalance = user.creditBalance.toNumber();
+
+    // Check if user has sufficient balance
+    if (currentBalance < paymentAmount) {
+      throw new BadRequestException(
+        `Insufficient credit balance. Required: ${paymentAmount}, Available: ${currentBalance}`,
+      );
+    }
+
+    // Deduct from credit balance and update payment
+    const [updatedUser, updatedPayment] = await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          creditBalance: {
+            decrement: new Prisma.Decimal(paymentAmount),
+          },
+        },
+        select: {
+          id: true,
+          email: true,
+          creditBalance: true,
+        },
+      }),
+      this.prisma.payment.update({
+        where: { bookingId },
+        data: {
+          status: PaymentStatus.PAID,
+          paymentDate: new Date(),
+        },
+        include: {
+          booking: {
+            include: {
+              service: {
+                select: {
+                  id: true,
+                  title: true,
+                  price: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      message: 'Payment successful using credit balance',
+      payment: {
+        ...updatedPayment,
+        amount: updatedPayment.amount.toNumber(),
+        booking: {
+          ...updatedPayment.booking,
+          service: {
+            ...updatedPayment.booking.service,
+            price: updatedPayment.booking.service.price.toNumber(),
+          },
+        },
+      },
+      creditBalance: {
+        previousBalance: currentBalance,
+        deductedAmount: paymentAmount,
+        newBalance: updatedUser.creditBalance.toNumber(),
+      },
+      demoMode: this.isDemoMode,
     };
   }
 }

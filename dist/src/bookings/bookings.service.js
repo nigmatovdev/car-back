@@ -552,6 +552,128 @@ let BookingsService = class BookingsService {
                 : null,
         };
     }
+    async findWasherActiveBookings(washerId, userRole) {
+        if (userRole !== 'WASHER' && userRole !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only washers can view their active bookings');
+        }
+        const bookings = await this.prisma.booking.findMany({
+            where: {
+                washerId,
+                status: {
+                    in: [
+                        client_1.BookingStatus.ASSIGNED,
+                        client_1.BookingStatus.EN_ROUTE,
+                        client_1.BookingStatus.ARRIVED,
+                        client_1.BookingStatus.IN_PROGRESS,
+                    ],
+                },
+            },
+            include: {
+                service: {
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        price: true,
+                        durationMin: true,
+                    },
+                },
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                        phone: true,
+                        address: true,
+                    },
+                },
+                payment: {
+                    select: {
+                        id: true,
+                        amount: true,
+                        status: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+        return bookings.map((booking) => ({
+            ...booking,
+            latitude: booking.latitude.toNumber(),
+            longitude: booking.longitude.toNumber(),
+            service: {
+                ...booking.service,
+                price: booking.service.price.toNumber(),
+            },
+            payment: booking.payment
+                ? {
+                    ...booking.payment,
+                    amount: booking.payment.amount.toNumber(),
+                }
+                : null,
+        }));
+    }
+    async findWasherOrderHistory(washerId, userRole) {
+        if (userRole !== 'WASHER' && userRole !== 'ADMIN') {
+            throw new common_1.ForbiddenException('Only washers can view their order history');
+        }
+        const bookings = await this.prisma.booking.findMany({
+            where: {
+                washerId,
+                status: client_1.BookingStatus.COMPLETED,
+            },
+            include: {
+                service: {
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        price: true,
+                        durationMin: true,
+                    },
+                },
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                        phone: true,
+                        address: true,
+                    },
+                },
+                payment: {
+                    select: {
+                        id: true,
+                        amount: true,
+                        status: true,
+                        paymentDate: true,
+                    },
+                },
+            },
+            orderBy: {
+                updatedAt: 'desc',
+            },
+        });
+        return bookings.map((booking) => ({
+            ...booking,
+            latitude: booking.latitude.toNumber(),
+            longitude: booking.longitude.toNumber(),
+            service: {
+                ...booking.service,
+                price: booking.service.price.toNumber(),
+            },
+            payment: booking.payment
+                ? {
+                    ...booking.payment,
+                    amount: booking.payment.amount.toNumber(),
+                }
+                : null,
+        }));
+    }
     async remove(id, userId, userRole) {
         const booking = await this.prisma.booking.findUnique({
             where: { id },

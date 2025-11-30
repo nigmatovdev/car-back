@@ -128,6 +128,73 @@ export declare class BookingsController {
         serviceId: string;
         washerId: string | null;
     }[]>;
+    findWasherActiveBookings(req: RequestWithUser): Promise<{
+        latitude: number;
+        longitude: number;
+        service: {
+            price: number;
+            id: string;
+            title: string;
+            description: string | null;
+            durationMin: number;
+        };
+        payment: {
+            amount: number;
+            id: string;
+            status: import(".prisma/client").$Enums.PaymentStatus;
+        } | null;
+        user: {
+            id: string;
+            email: string;
+            firstName: string | null;
+            lastName: string | null;
+            phone: string | null;
+            address: string | null;
+        };
+        id: string;
+        date: Date;
+        time: string;
+        status: import(".prisma/client").$Enums.BookingStatus;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        serviceId: string;
+        washerId: string | null;
+    }[]>;
+    findWasherOrderHistory(req: RequestWithUser): Promise<{
+        latitude: number;
+        longitude: number;
+        service: {
+            price: number;
+            id: string;
+            title: string;
+            description: string | null;
+            durationMin: number;
+        };
+        payment: {
+            amount: number;
+            id: string;
+            status: import(".prisma/client").$Enums.PaymentStatus;
+            paymentDate: Date | null;
+        } | null;
+        user: {
+            id: string;
+            email: string;
+            firstName: string | null;
+            lastName: string | null;
+            phone: string | null;
+            address: string | null;
+        };
+        id: string;
+        date: Date;
+        time: string;
+        status: import(".prisma/client").$Enums.BookingStatus;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        serviceId: string;
+        washerId: string | null;
+    }[]>;
     findOne(req: RequestWithUser, id: string): Promise<{
         latitude: number;
         longitude: number;

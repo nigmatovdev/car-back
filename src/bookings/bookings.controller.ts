@@ -185,6 +185,109 @@ export class BookingsController {
     return this.bookingsService.findAvailableBookings(req.user.role);
   }
 
+  @Get('washer/active')
+  @UseGuards(WasherGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get active bookings for washer (Washer only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Active bookings retrieved successfully',
+    schema: {
+      example: [
+        {
+          id: 'uuid',
+          userId: 'uuid',
+          serviceId: 'uuid',
+          washerId: 'uuid',
+          latitude: 40.7128,
+          longitude: -74.0060,
+          date: '2024-12-25T00:00:00.000Z',
+          time: '14:30',
+          status: 'ASSIGNED',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-01T00:00:00.000Z',
+          service: {
+            id: 'uuid',
+            title: 'Basic Car Wash',
+            description: 'Exterior wash and dry',
+            price: 25.99,
+            durationMin: 30,
+          },
+          user: {
+            id: 'uuid',
+            email: 'user@example.com',
+            firstName: 'John',
+            lastName: 'Doe',
+            phone: '+1234567890',
+            address: '123 Main St',
+          },
+          payment: {
+            id: 'uuid',
+            amount: 25.99,
+            status: 'UNPAID',
+          },
+        },
+      ],
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Only washers can view their active bookings' })
+  findWasherActiveBookings(@Request() req: RequestWithUser) {
+    return this.bookingsService.findWasherActiveBookings(req.user.userId, req.user.role);
+  }
+
+  @Get('washer/history')
+  @UseGuards(WasherGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get order history for washer (Washer only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Order history retrieved successfully',
+    schema: {
+      example: [
+        {
+          id: 'uuid',
+          userId: 'uuid',
+          serviceId: 'uuid',
+          washerId: 'uuid',
+          latitude: 40.7128,
+          longitude: -74.0060,
+          date: '2024-12-25T00:00:00.000Z',
+          time: '14:30',
+          status: 'COMPLETED',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-01T12:00:00.000Z',
+          service: {
+            id: 'uuid',
+            title: 'Basic Car Wash',
+            description: 'Exterior wash and dry',
+            price: 25.99,
+            durationMin: 30,
+          },
+          user: {
+            id: 'uuid',
+            email: 'user@example.com',
+            firstName: 'John',
+            lastName: 'Doe',
+            phone: '+1234567890',
+            address: '123 Main St',
+          },
+          payment: {
+            id: 'uuid',
+            amount: 25.99,
+            status: 'PAID',
+            paymentDate: '2024-01-01T12:00:00.000Z',
+          },
+        },
+      ],
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Only washers can view their order history' })
+  findWasherOrderHistory(@Request() req: RequestWithUser) {
+    return this.bookingsService.findWasherOrderHistory(req.user.userId, req.user.role);
+  }
+
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get booking by ID' })

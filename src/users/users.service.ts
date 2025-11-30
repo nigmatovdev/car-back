@@ -28,6 +28,7 @@ export class UsersService {
         address: true,
         role: true,
         isActive: true,
+        creditBalance: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -37,7 +38,10 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    return {
+      ...user,
+      creditBalance: user.creditBalance.toNumber(),
+    };
   }
 
   // Update current user's profile
@@ -118,12 +122,16 @@ export class UsersService {
         address: true,
         role: true,
         isActive: true,
+        creditBalance: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    return updatedUser;
+    return {
+      ...updatedUser,
+      creditBalance: updatedUser.creditBalance.toNumber(),
+    };
   }
 
   // Get all users (admin only)
@@ -139,6 +147,7 @@ export class UsersService {
         address: true,
         role: true,
         isActive: true,
+        creditBalance: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -147,7 +156,10 @@ export class UsersService {
       },
     });
 
-    return users;
+    return users.map((user) => ({
+      ...user,
+      creditBalance: user.creditBalance.toNumber(),
+    }));
   }
 
   // Get user by ID (admin only)
@@ -164,6 +176,7 @@ export class UsersService {
         address: true,
         role: true,
         isActive: true,
+        creditBalance: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -173,7 +186,10 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    return {
+      ...user,
+      creditBalance: user.creditBalance.toNumber(),
+    };
   }
 }
 

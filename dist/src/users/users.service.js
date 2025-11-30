@@ -70,6 +70,7 @@ let UsersService = class UsersService {
                 address: true,
                 role: true,
                 isActive: true,
+                creditBalance: true,
                 createdAt: true,
                 updatedAt: true,
             },
@@ -77,7 +78,10 @@ let UsersService = class UsersService {
         if (!user) {
             throw new common_1.NotFoundException('User not found');
         }
-        return user;
+        return {
+            ...user,
+            creditBalance: user.creditBalance.toNumber(),
+        };
     }
     async updateCurrentUser(userId, updateUserDto) {
         const existingUser = await this.prisma.user.findUnique({
@@ -135,11 +139,15 @@ let UsersService = class UsersService {
                 address: true,
                 role: true,
                 isActive: true,
+                creditBalance: true,
                 createdAt: true,
                 updatedAt: true,
             },
         });
-        return updatedUser;
+        return {
+            ...updatedUser,
+            creditBalance: updatedUser.creditBalance.toNumber(),
+        };
     }
     async findAll() {
         const users = await this.prisma.user.findMany({
@@ -153,6 +161,7 @@ let UsersService = class UsersService {
                 address: true,
                 role: true,
                 isActive: true,
+                creditBalance: true,
                 createdAt: true,
                 updatedAt: true,
             },
@@ -160,7 +169,10 @@ let UsersService = class UsersService {
                 createdAt: 'desc',
             },
         });
-        return users;
+        return users.map((user) => ({
+            ...user,
+            creditBalance: user.creditBalance.toNumber(),
+        }));
     }
     async findOne(id) {
         const user = await this.prisma.user.findUnique({
@@ -175,6 +187,7 @@ let UsersService = class UsersService {
                 address: true,
                 role: true,
                 isActive: true,
+                creditBalance: true,
                 createdAt: true,
                 updatedAt: true,
             },
@@ -182,7 +195,10 @@ let UsersService = class UsersService {
         if (!user) {
             throw new common_1.NotFoundException('User not found');
         }
-        return user;
+        return {
+            ...user,
+            creditBalance: user.creditBalance.toNumber(),
+        };
     }
 };
 exports.UsersService = UsersService;

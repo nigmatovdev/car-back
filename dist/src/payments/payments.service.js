@@ -263,6 +263,137 @@ let PaymentsService = class PaymentsService {
             },
         };
     }
+    async topUpCredit(userId, amount) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                creditBalance: true,
+            },
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                creditBalance: {
+                    increment: new client_1.Prisma.Decimal(amount),
+                },
+            },
+            select: {
+                id: true,
+                email: true,
+                creditBalance: true,
+            },
+        });
+        return {
+            message: 'Credit balance topped up successfully',
+            previousBalance: user.creditBalance.toNumber(),
+            addedAmount: amount,
+            newBalance: updatedUser.creditBalance.toNumber(),
+            demoMode: this.isDemoMode,
+        };
+    }
+    async payWithCredit(userId, bookingId) {
+        const booking = await this.prisma.booking.findUnique({
+            where: { id: bookingId },
+            include: {
+                payment: true,
+                service: {
+                    select: {
+                        id: true,
+                        title: true,
+                        price: true,
+                    },
+                },
+            },
+        });
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found');
+        }
+        if (booking.userId !== userId) {
+            throw new common_1.ForbiddenException('You can only pay for your own bookings');
+        }
+        if (!booking.payment) {
+            throw new common_1.NotFoundException('Payment record not found for this booking');
+        }
+        if (booking.payment.status === client_1.PaymentStatus.PAID) {
+            throw new common_1.BadRequestException('Booking is already paid');
+        }
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                creditBalance: true,
+            },
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        const paymentAmount = booking.payment.amount.toNumber();
+        const currentBalance = user.creditBalance.toNumber();
+        if (currentBalance < paymentAmount) {
+            throw new common_1.BadRequestException(`Insufficient credit balance. Required: ${paymentAmount}, Available: ${currentBalance}`);
+        }
+        const [updatedUser, updatedPayment] = await this.prisma.$transaction([
+            this.prisma.user.update({
+                where: { id: userId },
+                data: {
+                    creditBalance: {
+                        decrement: new client_1.Prisma.Decimal(paymentAmount),
+                    },
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    creditBalance: true,
+                },
+            }),
+            this.prisma.payment.update({
+                where: { bookingId },
+                data: {
+                    status: client_1.PaymentStatus.PAID,
+                    paymentDate: new Date(),
+                },
+                include: {
+                    booking: {
+                        include: {
+                            service: {
+                                select: {
+                                    id: true,
+                                    title: true,
+                                    price: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            }),
+        ]);
+        return {
+            message: 'Payment successful using credit balance',
+            payment: {
+                ...updatedPayment,
+                amount: updatedPayment.amount.toNumber(),
+                booking: {
+                    ...updatedPayment.booking,
+                    service: {
+                        ...updatedPayment.booking.service,
+                        price: updatedPayment.booking.service.price.toNumber(),
+                    },
+                },
+            },
+            creditBalance: {
+                previousBalance: currentBalance,
+                deductedAmount: paymentAmount,
+                newBalance: updatedUser.creditBalance.toNumber(),
+            },
+            demoMode: this.isDemoMode,
+        };
+    }
 };
 exports.PaymentsService = PaymentsService;
 exports.PaymentsService = PaymentsService = __decorate([
